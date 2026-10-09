@@ -50,14 +50,14 @@
                 </div>
             </div>
 
-            <!-- Bulk Folder / Multi-File Upload Panel -->
+            <!-- Bulk Multi-File Upload Panel -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-                <h2 class="text-md font-semibold text-purple-300">📁 Bulk Upload Songs / Folder</h2>
-                <p class="text-[11px] text-slate-400 leading-tight">Select multiple files or an entire folder. Titles and artists will be extracted automatically from file names (e.g., "Artist - Title.mp3").</p>
+                <h2 class="text-md font-semibold text-purple-300">📁 Bulk Upload Songs</h2>
+                <p class="text-[11px] text-slate-400 leading-tight">Select multiple audio/video files. Titles and artists will be extracted automatically from file names (e.g., "Artist - Title.mp3").</p>
                 <form id="upload-form" class="space-y-3">
                     <div>
-                        <!-- Supports selecting multiple files or a whole folder -->
-                        <input type="file" id="song-files" accept="audio/*,video/*" multiple webkitdirectory directory required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer">
+                        <!-- Using 'multiple' for reliable multi-file selection across all browsers -->
+                        <input type="file" id="song-files" accept="audio/*,video/*,.mp3,.mp4,.wav,.m4a,.flac,.mid,.midi" multiple required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer">
                     </div>
                     <button type="submit" id="upload-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-semibold py-2 rounded hover:opacity-90 transition">
                         Upload & Sync Batch
@@ -67,7 +67,7 @@
             </div>
         </div>
 
-        <!-- CENTER COLUMN: Main Stage Monitor (6 cols - Expanded Screen with Fullscreen Button) -->
+        <!-- CENTER COLUMN: Main Stage Monitor (6 cols) -->
         <div class="lg:col-span-6 space-y-6 flex flex-col">
             <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col">
                 <div class="flex justify-between items-center mb-3">
@@ -345,10 +345,7 @@
 
         // Helper to automatically parse title & artist from filename (e.g. "Artist - Title.mp3")
         function parseFileName(filename) {
-            // Remove file extension
             const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
-            
-            // Look for common separators like dash (-) or underscore (_)
             let parts = nameWithoutExt.split(/[-_]/);
             if (parts.length >= 2) {
                 return {
@@ -363,13 +360,13 @@
             }
         }
 
-        // Bulk Upload and Auto-Extraction Form Handler
+        // Bulk Upload Form Handler
         uploadForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const fileInput = document.getElementById("song-files");
             const files = fileInput.files;
 
-            if (!files || files.length === 0) return alert("Please select files or a folder!");
+            if (!files || files.length === 0) return alert("Please select files first!");
 
             const uploadBtn = document.getElementById("upload-btn");
             uploadBtn.disabled = true;
@@ -379,15 +376,9 @@
 
             for (let i = 0; i < totalFiles; i++) {
                 const file = files[i];
-                // Skip non-audio/video files if any crept in
-                if (!file.type.startsWith('audio/') && !file.type.startsWith('video/') && !file.name.match(/\.(mp3|wav|ogg|mp4|webm|m4a|flac)$/i)) {
-                    continue;
-                }
-
-                uploadProgress.textContent = `Uploading file ${i + 1} of ${totalFiles}: ${file.name}`;
+                uploadProgress.textContent = `Uploading (${i + 1}/${totalFiles}): ${file.name}`;
 
                 try {
-                    // Automatically extract artist and title from filename
                     const parsed = parseFileName(file.name);
                     const title = parsed.title;
                     const artist = parsed.artist;
