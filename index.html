@@ -61,7 +61,7 @@
         }
         #tv-monitor {
             width: 100%;
-            height: 250px;
+            height: 280px;
             background: #000;
             border-radius: 8px;
             display: flex;
@@ -76,6 +76,12 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
+        }
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
         }
         /* Login Overlay */
         #login-modal {
@@ -151,8 +157,15 @@
                         <strong id="current-title">-</strong><br>
                         <small id="current-artist" style="color:#aaa;">-</small>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="playNextInQueue()" style="background: #0f3460;">Next Song</button>
+                    
+                    <!-- Playback Controls -->
+                    <div class="controls-grid">
+                        <button onclick="playMedia()" style="background: #16213e; margin:0;">▶ Play</button>
+                        <button onclick="pauseMedia()" style="background: #16213e; margin:0;">⏸ Pause</button>
+                        <button onclick="stopMedia()" style="background: #d9534f; margin:0;">⏹ Stop</button>
+                        <button onclick="playPreviousInQueue()" style="background: #0f3460; margin:0;">⏮ Prev</button>
+                        <button onclick="playNextInQueue()" style="background: #0f3460; margin:0;">⏭ Next</button>
+                        <button onclick="toggleFullscreen()" style="background: #e94560; margin:0;">🖵 Full</button>
                     </div>
                 </div>
 
@@ -187,6 +200,7 @@
         let currentUser = null;
         let allSongs = [];
         let songQueue = [];
+        let currentQueueIndex = 0;
 
         // --- AUTHENTICATION LOGIC ---
         async function handleLogin() {
@@ -333,6 +347,7 @@
                 songQueue.push(song);
                 renderQueue();
                 if (songQueue.length === 1) {
+                    currentQueueIndex = 0;
                     playSong(songQueue[0]);
                 }
             }
@@ -349,6 +364,8 @@
             songQueue.forEach((song, index) => {
                 const item = document.createElement('div');
                 item.className = 'queue-item';
+                let isCurrent = (index === currentQueueIndex) ? 'border: 1px solid #e94560;' : '';
+                item.style.cssText = isCurrent;
                 item.innerHTML = `
                     <div>
                         <small style="color:#e94560;">#${index + 1}</small><strong>${song.title}</strong><br>
@@ -362,6 +379,12 @@
 
         function removeFromQueue(index) {
             songQueue.splice(index, 1);
+            if (index === currentQueueIndex && songQueue.length > 0) {
+                currentQueueIndex = Math.min(index, songQueue.length - 1);
+                playSong(songQueue[currentQueueIndex]);
+            } else if (songQueue.length === 0) {
+                stopMedia();
+            }
             renderQueue();
         }
 
@@ -371,22 +394,61 @@
             document.getElementById('current-artist').innerText = song.artist || 'Unknown';
 
             if (song.url) {
-                monitor.innerHTML = `<video src="${song.url}" controls autoplay style="width:100%; height:100%;"></video>`;
+                monitor.innerHTML = `<video id="active-media" src="${song.url}" controls autoplay style="width:100%; height:100%;"></video>`;
             } else {
-                monitor.innerHTML = `<div style="color:#aaa; text-align:center;">Playing audio/simulation for: <strong>${song.title}</strong></div>`;
+                monitor.innerHTML = `<div style="color:#aaa; text-align:center;">Playing simulation for: <strong>${song.title}</strong></div>`;
             }
+            renderQueue();
+        }
+
+        // --- PLAYBACK CONTROLS ---
+        function playMedia() {
+            const media = document.getElementById('active-media');
+            if (media) media.play();
+        }
+
+        function pauseMedia() {
+            const media = document.getElementById('active-media');
+            if (media) media.pause();
+        }
+
+        function stopMedia() {
+            const monitor = document.getElementById('tv-monitor');
+            monitor.innerHTML = '<span id="monitor-placeholder">No song playing</span>';
+            document.getElementById('current-title').innerText = '-';
+            document.getElementById('current-artist').innerText = '-';
+            songQueue = [];
+            currentQueueIndex = 0;
+            renderQueue();
         }
 
         function playNextInQueue() {
-            if (songQueue.length > 0) {
-                songQueue.shift(); // remove currently playing
-                renderQueue();
-                if (songQueue.length > 0) {
-                    playSong(songQueue[0]);
-                } else {
-                    document.getElementById('tv-monitor').innerHTML = '<span id="monitor-placeholder">No song playing</span>';
-                    document.getElementById('current-title').innerText = '-';
-                    document.getElementById('current-artist').innerText = '-';
+            if (songQueue.length > 0 && currentQueueIndex < songQueue.length - 1) {
+                currentQueueIndex++;
+                playSong(songQueue[currentQueueIndex]);
+            } else {
+                stopMedia();
+            }
+        }
+
+        function playPreviousInQueue() {
+            if (songQueue.length > 0 && currentQueueIndex > 0) {
+                currentQueueIndex--;
+                playSong(songQueue[currentQueueIndex]);
+            }
+        }
+
+        function toggleFullscreen() {
+            const monitor = document.getElementById('tv-monitor');
+            if (!document.fullscreenElement) {
+                if (monitor.requestFullscreen) {
+                    monitor.requestFullscreen();
+                } else if (monitor.webkitRequestFullscreen) {
+                    monitor.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
                 }
             }
         }
