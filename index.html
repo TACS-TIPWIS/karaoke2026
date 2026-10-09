@@ -14,6 +14,10 @@
             background-color: rgba(88, 28, 135, 0.4) !important;
             box-shadow: 0 0 15px rgba(192, 132, 252, 0.4);
         }
+        /* Custom range slider styling */
+        input[type=range] {
+            accent-color: #ec4899;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
@@ -72,7 +76,7 @@
             </div>
         </div>
 
-        <!-- CENTER COLUMN: Main Stage Monitor (6 cols) -->
+        <!-- CENTER COLUMN: Main Stage Monitor & Audio Adjusters (6 cols) -->
         <div class="lg:col-span-6 space-y-6 flex flex-col">
             <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col">
                 <div class="flex justify-between items-center mb-3">
@@ -83,10 +87,56 @@
                         ⛶ Fullscreen
                     </button>
                 </div>
-                <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex-grow flex flex-col items-center justify-center p-6 text-slate-500 text-center min-h-[450px]">
+                
+                <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex flex-col items-center justify-center p-6 text-slate-500 text-center min-h-[350px]">
                     <div class="space-y-2">
                         <span class="text-4xl">🎵</span>
                         <p class="text-sm">No track playing right now.<br>Add songs to queue to start singing!</p>
+                    </div>
+                </div>
+
+                <!-- AUDIO CONTROLS PANEL (Key / Pitch, Tempo, Volume) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+                    <!-- Key / Pitch Control -->
+                    <div class="bg-slate-950 border border-slate-800 p-3 rounded-lg flex flex-col justify-between">
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-slate-400 uppercase tracking-wider font-semibold">Key / Pitch</span>
+                            <span id="pitch-val" class="text-pink-400 font-bold">0 semitones</span>
+                        </div>
+                        <input type="range" id="pitch-slider" min="-6" max="6" step="1" value="0" oninput="updatePitch(this.value)" class="w-full cursor-pointer">
+                        <div class="flex justify-between text-[9px] text-slate-500 mt-1">
+                            <span>-6 (Flat)</span>
+                            <span>Original</span>
+                            <span>+6 (Sharp)</span>
+                        </div>
+                    </div>
+
+                    <!-- Tempo Control -->
+                    <div class="bg-slate-950 border border-slate-800 p-3 rounded-lg flex flex-col justify-between">
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-slate-400 uppercase tracking-wider font-semibold">Tempo</span>
+                            <span id="tempo-val" class="text-pink-400 font-bold">100%</span>
+                        </div>
+                        <input type="range" id="tempo-slider" min="50" max="150" step="5" value="100" oninput="updateTempo(this.value)" class="w-full cursor-pointer">
+                        <div class="flex justify-between text-[9px] text-slate-500 mt-1">
+                            <span>50%</span>
+                            <span>Normal</span>
+                            <span>150%</span>
+                        </div>
+                    </div>
+
+                    <!-- Music Volume Control -->
+                    <div class="bg-slate-950 border border-slate-800 p-3 rounded-lg flex flex-col justify-between">
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-slate-400 uppercase tracking-wider font-semibold">Music Volume</span>
+                            <span id="volume-val" class="text-pink-400 font-bold">100%</span>
+                        </div>
+                        <input type="range" id="volume-slider" min="0" max="100" step="1" value="100" oninput="updateVolume(this.value)" class="w-full cursor-pointer">
+                        <div class="flex justify-between text-[9px] text-slate-500 mt-1">
+                            <span>0%</span>
+                            <span>50%</span>
+                            <span>100%</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -158,8 +208,16 @@
         let currentActiveSong = null;
         let isAdmin = false;
 
-        // Updated Admin Passcode
         const ADMIN_PASSCODE = "gege@635185";
+
+        // Audio Engine State Variables
+        let audioCtx = null;
+        let audioElement = null;
+        let audioSourceNode = null;
+        let gainNode = null;
+        let currentPitchShift = 0; // semitones (-6 to +6)
+        let currentTempo = 1.0;    // playback rate (0.5 to 1.5)
+        let currentVol = 1.0;      // volume (0 to 1)
 
         function toggleAdminMode() {
             if (!isAdmin) {
@@ -267,33 +325,103 @@
             const artist = escapeHtml(song.artist || 'Unknown Artist');
             const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
 
+            // Render player UI
             if (isVideo) {
                 playerContainer.innerHTML = `
                     <div class="w-full flex justify-between items-center mb-2">
                         <span class="text-xs text-pink-400 font-semibold truncate">NOW SINGING: ${title} - ${artist}</span>
                     </div>
-                    <video id="media-player" controls autoplay class="w-full h-full rounded-lg bg-black object-contain flex-grow" onerror="handleMediaError()" onended="playNextInQueue()">
+                    <video id="media-player" controls autoplay crossorigin="anonymous" class="w-full max-h-[260px] rounded-lg bg-black object-contain" onerror="handleMediaError()" onended="playNextInQueue()">
                         <source src="${url}">
                         Your browser does not support the video tag.
                     </video>
                 `;
             } else {
                 playerContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center mb-4">
+                    <div class="w-full flex justify-between items-center mb-2">
                         <span class="text-xs text-purple-400 font-semibold truncate">NOW SINGING: ${title} - ${artist}</span>
                     </div>
-                    <div class="flex flex-col items-center justify-center flex-grow space-y-4 w-full">
-                        <div class="w-24 h-24 rounded-full bg-purple-900/40 border border-purple-500/50 flex items-center justify-center text-4xl animate-pulse">
+                    <div class="flex flex-col items-center justify-center space-y-3 py-4 w-full">
+                        <div class="w-16 h-16 rounded-full bg-purple-900/40 border border-purple-500/50 flex items-center justify-center text-3xl animate-pulse">
                             🎤
                         </div>
-                        <audio id="media-player" controls autoplay class="w-full" onerror="handleMediaError()" onended="playNextInQueue()">
+                        <audio id="media-player" controls autoplay crossorigin="anonymous" class="w-full" onerror="handleMediaError()" onended="playNextInQueue()">
                             <source src="${url}">
                             Your browser does not support the audio element.
                         </audio>
                     </div>
                 `;
             }
+
+            setupAudioContextPipeline();
         }
+
+        // Web Audio API Pipeline for Pitch & Tempo
+        function setupAudioContextPipeline() {
+            try {
+                audioElement = document.getElementById("media-player");
+                if (!audioElement) return;
+
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === "suspended") {
+                    audioCtx.resume();
+                }
+
+                // If source node is already attached, disconnect it first
+                if (audioSourceNode) {
+                    try { audioSourceNode.disconnect(); } catch(e){}
+                }
+
+                audioSourceNode = audioCtx.createMediaElementSource(audioElement);
+                gainNode = audioCtx.createGain();
+
+                // Apply initial settings
+                applyAudioSettings();
+
+                audioSourceNode.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+            } catch (err) {
+                console.error("Web Audio API setup error (CORS or audio policy):", err);
+            }
+        }
+
+        function applyAudioSettings() {
+            if (!audioElement) return;
+
+            // Effective playbackRate combines tempo and pitch shift formula (2 ^ (semitones / 12))
+            const pitchFactor = Math.pow(2, currentPitchShift / 12);
+            const totalRate = currentTempo * pitchFactor;
+
+            audioElement.playbackRate = totalRate;
+            if (gainNode && audioCtx) {
+                gainNode.gain.value = currentVol;
+            }
+        }
+
+        window.updatePitch = function(val) {
+            currentPitchShift = parseInt(val);
+            document.getElementById("pitch-val").textContent = `${currentPitchShift > 0 ? '+' : ''}${currentPitchShift} semitones`;
+            applyAudioSettings();
+        };
+
+        window.updateTempo = function(val) {
+            currentTempo = parseInt(val) / 100;
+            document.getElementById("tempo-val").textContent = `${val}%`;
+            applyAudioSettings();
+        };
+
+        window.updateVolume = function(val) {
+            currentVol = parseInt(val) / 100;
+            document.getElementById("volume-val").textContent = `${val}%`;
+            if (audioElement) {
+                audioElement.volume = currentVol;
+            }
+            if (gainNode) {
+                gainNode.gain.value = currentVol;
+            }
+        };
 
         window.handleMediaError = function() {
             alert("Error loading media file. Please check if the file URL is accessible or if it's a valid audio/video format.");
