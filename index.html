@@ -56,7 +56,6 @@
                 <p class="text-[11px] text-slate-400 leading-tight">Select multiple audio/video files. Titles and artists will be extracted automatically from file names (e.g., "Artist - Title.mp3").</p>
                 <form id="upload-form" class="space-y-3">
                     <div>
-                        <!-- Using 'multiple' for reliable multi-file selection across all browsers -->
                         <input type="file" id="song-files" accept="audio/*,video/*,.mp3,.mp4,.wav,.m4a,.flac,.mid,.midi" multiple required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer">
                     </div>
                     <button type="submit" id="upload-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-semibold py-2 rounded hover:opacity-90 transition">
@@ -81,7 +80,7 @@
                 <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex-grow flex flex-col items-center justify-center p-6 text-slate-500 text-center min-h-[450px]">
                     <div class="space-y-2">
                         <span class="text-4xl">🎵</span>
-                        <p class="text-sm">No track playing right now.<br>Pick a song from the library or queue!</p>
+                        <p class="text-sm">No track playing right now.<br>Add songs to queue to start singing!</p>
                     </div>
                 </div>
             </div>
@@ -126,6 +125,8 @@
         let currentDisplayedSongs = [];
         let songQueue = [];
         let selectedLibraryIndex = 0;
+        let historyQueue = [];
+        let currentActiveSong = null;
 
         async function initApp() {
             try {
@@ -179,7 +180,8 @@
             songQueue.push(song);
             renderQueue();
             
-            if (!document.querySelector('audio, video')) {
+            // If nothing is currently playing, start playing from queue automatically
+            if (!currentActiveSong && !document.querySelector('audio, video')) {
                 playNextInQueue();
             }
         };
@@ -187,7 +189,10 @@
         window.playSongImmediate = function(index) {
             const song = currentDisplayedSongs[index];
             if (!song) return;
-            playMedia(song);
+            // Adds immediate pick to the front of queue and plays it
+            songQueue.unshift(song);
+            renderQueue();
+            playNextInQueue();
         };
 
         function playMedia(song) {
@@ -199,6 +204,11 @@
                 return;
             }
 
+            if (currentActiveSong) {
+                historyQueue.push(currentActiveSong);
+            }
+            currentActiveSong = song;
+
             const title = escapeHtml(song.title);
             const artist = escapeHtml(song.artist || 'Unknown Artist');
             const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
@@ -208,7 +218,7 @@
                     <div class="w-full flex justify-between items-center mb-2">
                         <span class="text-xs text-pink-400 font-semibold truncate">NOW SINGING: ${title} - ${artist}</span>
                     </div>
-                    <video controls autoplay class="w-full h-full rounded-lg bg-black object-contain flex-grow" onerror="handleMediaError()" onended="playNextInQueue()">
+                    <video id="media-player" controls autoplay class="w-full h-full rounded-lg bg-black object-contain flex-grow" onerror="handleMediaError()" onended="playNextInQueue()">
                         <source src="${url}">
                         Your browser does not support the video tag.
                     </video>
@@ -222,7 +232,7 @@
                         <div class="w-24 h-24 rounded-full bg-purple-900/40 border border-purple-500/50 flex items-center justify-center text-4xl animate-pulse">
                             🎤
                         </div>
-                        <audio controls autoplay class="w-full" onerror="handleMediaError()" onended="playNextInQueue()">
+                        <audio id="media-player" controls autoplay class="w-full" onerror="handleMediaError()" onended="playNextInQueue()">
                             <source src="${url}">
                             Your browser does not support the audio element.
                         </audio>
@@ -236,19 +246,58 @@
             playNextInQueue();
         };
 
+        // Strict Queue Progression: Only plays if items remain in songQueue
         window.playNextInQueue = function() {
             if (songQueue.length > 0) {
                 const nextSong = songQueue.shift();
                 renderQueue();
                 playMedia(nextSong);
             } else {
+                currentActiveSong = null;
                 playerContainer.innerHTML = `
                     <div class="space-y-2">
                         <span class="text-4xl">🎵</span>
-                        <p class="text-sm">Queue finished!<br>Pick more songs to keep singing.</p>
+                        <p class="text-sm">Queue finished!<br>Add more songs to the queue to keep singing.</p>
                     </div>
                 `;
             }
+        };
+
+        window.playPreviousInQueue = function() {
+            if (historyQueue.length > 0) {
+                if (currentActiveSong) {
+                    songQueue.unshift(currentActiveSong);
+                }
+                const prevSong = historyQueue.pop();
+                renderQueue();
+                playMedia(prevSong);
+            }
+        };
+
+        window.togglePlayPause = function() {
+            const player = document.getElementById("media-player");
+            if (player) {
+                if (player.paused) {
+                    player.play();
+                } else {
+                    player.pause();
+                }
+            }
+        };
+
+        window.stopMedia = function() {
+            const player = document.getElementById("media-player");
+            if (player) {
+                player.pause();
+                player.currentTime = 0;
+            }
+            currentActiveSong = null;
+            playerContainer.innerHTML = `
+                <div class="space-y-2">
+                    <span class="text-4xl">🎵</span>
+                    <p class="text-sm">Playback stopped.<br>Add songs to queue to sing!</p>
+                </div>
+            `;
         };
 
         window.removeFromQueue = function(queueIndex) {
@@ -305,10 +354,33 @@
             }
         });
 
-        // Android TV Remote Control Support
+        // Android TV Remote Control Support (Navigation + Media Key Mappings)
         document.addEventListener("keydown", (e) => {
             if (currentDisplayedSongs.length === 0) return;
 
+            // Media keys support for Android TV remotes
+            if (e.key === "MediaPlayPause" || e.code === "MediaPlayPause") {
+                e.preventDefault();
+                togglePlayPause();
+                return;
+            }
+            if (e.key === "MediaStop" || e.code === "MediaStop") {
+                e.preventDefault();
+                stopMedia();
+                return;
+            }
+            if (e.key === "MediaTrackNext" || e.code === "MediaTrackNext") {
+                e.preventDefault();
+                playNextInQueue();
+                return;
+            }
+            if (e.key === "MediaTrackPrevious" || e.code === "MediaTrackPrevious") {
+                e.preventDefault();
+                playPreviousInQueue();
+                return;
+            }
+
+            // Standard Library Navigation
             if (e.key === "ArrowDown") {
                 e.preventDefault();
                 if (selectedLibraryIndex < currentDisplayedSongs.length - 1) {
@@ -326,7 +398,8 @@
             } else if (e.key === "Enter") {
                 e.preventDefault();
                 if (document.activeElement !== searchInput) {
-                    playSongImmediate(selectedLibraryIndex);
+                    // Enter key adds the currently highlighted library song straight to the queue
+                    addToQueue(selectedLibraryIndex);
                 }
             } else if (e.key === "Escape" || e.key === "Backspace") {
                 if (document.fullscreenElement) {
@@ -343,7 +416,7 @@
             }
         }
 
-        // Helper to automatically parse title & artist from filename (e.g. "Artist - Title.mp3")
+        // Helper to automatically parse title & artist from filename
         function parseFileName(filename) {
             const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
             let parts = nameWithoutExt.split(/[-_]/);
