@@ -42,17 +42,23 @@
         
         <!-- LEFT COLUMN: Song Library & Upload Panel (3 cols) -->
         <div class="lg:col-span-3 space-y-4 flex flex-col">
-            <!-- Search & Number Quick Select Box -->
-            <div class="space-y-2">
-                <input type="text" id="search-input" placeholder="Search library (Remote OK)..." 
-                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500 text-sm">
+            <!-- Search & Karaoke Code Input Box (1000 - 10000) -->
+            <div class="space-y-2 bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-lg">
+                <label class="block text-xs font-semibold text-pink-400 uppercase tracking-wider">Karaoke Code (1001 - 10000)</label>
+                <input type="text" id="search-input" placeholder="Search library..." 
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:border-purple-500 text-xs text-slate-200">
                 
                 <div class="flex gap-2">
-                    <input type="number" id="song-number-input" placeholder="Song # (Remote 0-9)" min="1"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:border-pink-500 text-xs font-bold text-pink-300">
-                    <button onclick="selectSongByNumber()" class="bg-pink-600 hover:bg-pink-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs shrink-0 transition">
-                        Queue
+                    <input type="number" id="song-number-input" placeholder="Code (e.g. 1001)" min="1001" max="10000"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 focus:outline-none focus:border-pink-500 text-sm font-bold text-pink-300"
+                        oninput="previewSongByCode(this.value)">
+                    <button onclick="queueSongByCode()" class="bg-pink-600 hover:bg-pink-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shrink-0 transition">
+                        OK / Queue
                     </button>
+                </div>
+                <!-- Live Song Preview Badge for Remote Entry -->
+                <div id="code-preview" class="text-[11px] text-slate-400 bg-slate-950 p-2 rounded border border-slate-800 min-h-[32px] flex items-center">
+                    Type code to preview song...
                 </div>
             </div>
 
@@ -62,7 +68,7 @@
                     <span>📚 Library</span>
                     <span id="song-count" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">0 songs</span>
                 </h2>
-                <div id="song-list" class="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+                <div id="song-list" class="space-y-2 max-h-[240px] overflow-y-auto pr-1">
                     <p class="text-slate-500 text-center py-6 text-sm">Loading songs...</p>
                 </div>
             </div>
@@ -70,7 +76,7 @@
             <!-- Bulk Multi-File Upload Panel (HIDDEN BY DEFAULT UNLESS ADMIN) -->
             <div id="admin-upload-panel" class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3 hidden">
                 <h2 class="text-md font-semibold text-purple-300">📁 Admin Bulk Upload</h2>
-                <p class="text-[11px] text-slate-400 leading-tight">Select multiple audio/video files. Titles and artists will be extracted automatically from file names.</p>
+                <p class="text-[11px] text-slate-400 leading-tight">Select multiple audio/video files. Titles and artists will be extracted automatically.</p>
                 <form id="upload-form" class="space-y-3">
                     <div>
                         <input type="file" id="song-files" accept="audio/*,video/*,.mp3,.mp4,.wav,.m4a,.flac,.mid,.midi" multiple required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer">
@@ -187,7 +193,8 @@
         </div>
 
     </main>
-<!-- Supabase & App Script -->
+
+    <!-- Supabase & App Script -->
     <script>
         const SUPABASE_URL = "https://wnoezoiyjnvftvpbosva.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_Ftro51fz2tJtgFbQzhq4uw_Txmc_kGi";
@@ -201,6 +208,7 @@
         const playerContainer = document.getElementById("player-container");
         const searchInput = document.getElementById("search-input");
         const songNumberInput = document.getElementById("song-number-input");
+        const codePreviewEl = document.getElementById("code-preview");
         const queueListEl = document.getElementById("queue-list");
         const queueCountEl = document.getElementById("queue-count");
         const uploadProgress = document.getElementById("upload-progress");
@@ -216,6 +224,7 @@
         let isAdmin = false;
 
         const ADMIN_PASSCODE = "gege@635185";
+        const BASE_SONG_CODE = 1001; // Starting karaoke number
 
         let audioCtx = null;
         let audioElement = null;
@@ -250,7 +259,7 @@
 
         async function initApp() {
             try {
-                const { data, error } = await supabaseClient.from("songs").select("*").order("created_at", { ascending: false });
+                const { data, error } = await supabaseClient.from("songs").select("*").order("created_at", { ascending: true });
                 if (error) throw error;
                 
                 statusEl.textContent = "Cloud Connected 🟢";
@@ -279,37 +288,54 @@
                 selectedLibraryIndex = Math.max(0, songs.length - 1);
             }
 
-            songListEl.innerHTML = songs.map((song, index) => `
-                <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border border-slate-800 p-2 rounded-lg transition text-xs ${index === selectedLibraryIndex ? 'tv-focused' : 'hover:border-purple-500'}">
-                    <div class="overflow-hidden pr-2 flex items-center gap-2">
-                        <span class="text-[10px] font-bold text-pink-400 bg-pink-950/50 px-1.5 py-0.5 rounded shrink-0">#${index + 1}</span>
-                        <div class="truncate">
-                            <h3 class="font-medium text-slate-200 truncate">${escapeHtml(song.title)}</h3>
-                            <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist || 'Unknown Artist')}</p>
+            songListEl.innerHTML = songs.map((song, index) => {
+                const assignedCode = BASE_SONG_CODE + index;
+                return `
+                    <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border border-slate-800 p-2 rounded-lg transition text-xs ${index === selectedLibraryIndex ? 'tv-focused' : 'hover:border-purple-500'}">
+                        <div class="overflow-hidden pr-2 flex items-center gap-2">
+                            <span class="text-[10px] font-bold text-pink-400 bg-pink-950/50 px-1.5 py-0.5 rounded shrink-0">#${assignedCode}</span>
+                            <div class="truncate">
+                                <h3 class="font-medium text-slate-200 truncate">${escapeHtml(song.title)}</h3>
+                                <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist || 'Unknown Artist')}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-1 shrink-0">
+                            <button onclick="addToQueue(${index})" title="Add to Queue" class="bg-purple-600 hover:bg-purple-700 px-2 py-0.5 rounded font-medium text-white">Queue</button>
+                            <button onclick="playSongImmediate(${index})" title="Play Now" class="bg-pink-600 hover:bg-pink-700 px-2 py-0.5 rounded font-medium text-white">Play</button>
+                            ${isAdmin ? `<button onclick="deleteSong('${song.id}')" title="Delete" class="bg-red-600 text-white hover:bg-red-700 px-1.5 py-0.5 rounded transition">×</button>` : ''}
                         </div>
                     </div>
-                    <div class="flex gap-1 shrink-0">
-                        <button onclick="addToQueue(${index})" title="Add to Queue" class="bg-purple-600 hover:bg-purple-700 px-2 py-0.5 rounded font-medium text-white">Queue</button>
-                        <button onclick="playSongImmediate(${index})" title="Play Now" class="bg-pink-600 hover:bg-pink-700 px-2 py-0.5 rounded font-medium text-white">Play</button>
-                        ${isAdmin ? `<button onclick="deleteSong('${song.id}')" title="Delete" class="bg-red-600 text-white hover:bg-red-700 px-1.5 py-0.5 rounded transition">×</button>` : ''}
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        window.selectSongByNumber = function() {
-            const num = parseInt(songNumberInput.value);
-            if (isNaN(num) || num < 1 || num > currentDisplayedSongs.length) {
-                alert(`Please enter a valid song number between 1 and ${currentDisplayedSongs.length}`);
+        window.previewSongByCode = function(val) {
+            const code = parseInt(val);
+            if (isNaN(code) || code < BASE_SONG_CODE || code > BASE_SONG_CODE + allSongs.length - 1) {
+                codePreviewEl.innerHTML = `<span class="text-slate-500">Enter code (${BASE_SONG_CODE} - ${BASE_SONG_CODE + allSongs.length - 1})...</span>`;
                 return;
             }
-            const targetIndex = num - 1;
+            const targetIndex = code - BASE_SONG_CODE;
+            const song = allSongs[targetIndex];
+            if (song) {
+                codePreviewEl.innerHTML = `<span class="text-pink-300 font-semibold truncate">🎵 #${code}: ${escapeHtml(song.title)} - ${escapeHtml(song.artist || 'Unknown')}</span>`;
+            }
+        };
+
+        window.queueSongByCode = function() {
+            const code = parseInt(songNumberInput.value);
+            if (isNaN(code) || code < BASE_SONG_CODE || code > BASE_SONG_CODE + allSongs.length - 1) {
+                alert(`Please enter a valid karaoke code between ${BASE_SONG_CODE} and ${BASE_SONG_CODE + allSongs.length - 1}`);
+                return;
+            }
+            const targetIndex = code - BASE_SONG_CODE;
             selectedLibraryIndex = targetIndex;
-            renderSongs(currentDisplayedSongs);
+            renderSongs(allSongs);
             scrollSelectedIntoView();
 
             addToQueue(targetIndex);
             songNumberInput.value = "";
+            codePreviewEl.innerHTML = `<span class="text-green-400">Successfully queued code #${code}! 🎉</span>`;
         };
 
         window.addToQueue = function(index) {
@@ -335,7 +361,7 @@
             const url = song.file_path || song.file_url || song.url || song.media_url;
 
             if (!url || url.endsWith('.mid') || url.endsWith('.midi')) {
-                alert(`Cannot play "${song.title}". Browsers do not support MIDI (.mid) files. Please upload an MP3 or MP4 version!`);
+                alert(`Cannot play "${song.title}". Browsers do not support MIDI (.mid) files.`);
                 playNextInQueue();
                 return;
             }
@@ -534,13 +560,13 @@
         if (songNumberInput) {
             songNumberInput.addEventListener("keydown", (e) => {
                 if (e.key === "Enter") {
-                    selectSongByNumber();
+                    queueSongByCode();
                 }
             });
         }
 
         document.addEventListener("keydown", (e) => {
-            if (currentDisplayedSongs.length === 0) return;
+            if (allSongs.length === 0) return;
 
             if (e.key >= '0' && e.key <= '9') {
                 if (document.activeElement !== searchInput && document.activeElement !== songNumberInput) {
@@ -667,7 +693,7 @@
                 .channel("public:songs")
                 .on("postgres_changes", { event: "*", schema: "public", table: "songs" }, payload => {
                     if (payload.eventType === "INSERT") {
-                        allSongs.unshift(payload.new);
+                        allSongs.push(payload.new);
                     } else if (payload.eventType === "DELETE") {
                         allSongs = allSongs.filter(s => s.id !== payload.old.id);
                     }
