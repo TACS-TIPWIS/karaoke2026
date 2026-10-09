@@ -187,8 +187,7 @@
         </div>
 
     </main>
-
-    <!-- Supabase & App Script -->
+<!-- Supabase & App Script -->
     <script>
         const SUPABASE_URL = "https://wnoezoiyjnvftvpbosva.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_Ftro51fz2tJtgFbQzhq4uw_Txmc_kGi";
@@ -543,7 +542,7 @@
         document.addEventListener("keydown", (e) => {
             if (currentDisplayedSongs.length === 0) return;
 
-            if (/^(Digit|Numpad)[0-9]$/.test(e.code) \vert{}\vert{} /^[0-9]$/.test(e.key)) {
+            if (e.key >= '0' && e.key <= '9') {
                 if (document.activeElement !== searchInput && document.activeElement !== songNumberInput) {
                     if (songNumberInput) songNumberInput.focus();
                 }
