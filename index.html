@@ -50,21 +50,20 @@
                 </div>
             </div>
 
-            <!-- Add New Song Panel -->
+            <!-- Bulk Folder / Multi-File Upload Panel -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-                <h2 class="text-md font-semibold text-purple-300">Add New Song</h2>
+                <h2 class="text-md font-semibold text-purple-300">📁 Bulk Upload Songs / Folder</h2>
+                <p class="text-[11px] text-slate-400 leading-tight">Select multiple files or an entire folder. Titles and artists will be extracted automatically from file names (e.g., "Artist - Title.mp3").</p>
                 <form id="upload-form" class="space-y-3">
-                    <div class="space-y-2">
-                        <input type="text" id="song-title" placeholder="Song Title" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-purple-500">
-                        <input type="text" id="song-artist" placeholder="Artist" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-purple-500">
-                    </div>
                     <div>
-                        <input type="file" id="song-file" accept="audio/*,video/*" required class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700">
+                        <!-- Supports selecting multiple files or a whole folder -->
+                        <input type="file" id="song-files" accept="audio/*,video/*" multiple webkitdirectory directory required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer">
                     </div>
-                    <button type="submit" id="upload-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-semibold py-1.5 rounded hover:opacity-90 transition">
-                        Upload & Sync
+                    <button type="submit" id="upload-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-semibold py-2 rounded hover:opacity-90 transition">
+                        Upload & Sync Batch
                     </button>
                 </form>
+                <div id="upload-progress" class="text-xs text-purple-300 text-center font-medium"></div>
             </div>
         </div>
 
@@ -121,6 +120,7 @@
         const searchInput = document.getElementById("search-input");
         const queueListEl = document.getElementById("queue-list");
         const queueCountEl = document.getElementById("queue-count");
+        const uploadProgress = document.getElementById("upload-progress");
 
         let allSongs = [];
         let currentDisplayedSongs = [];
@@ -162,7 +162,7 @@
                 <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border border-slate-800 p-2 rounded-lg transition text-xs ${index === selectedLibraryIndex ? 'tv-focused' : 'hover:border-purple-500'}">
                     <div class="overflow-hidden pr-2">
                         <h3 class="font-medium text-slate-200 truncate">${escapeHtml(song.title)}</h3>
-                        <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist)}</p>
+                        <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist || 'Unknown Artist')}</p>
                     </div>
                     <div class="flex gap-1 shrink-0">
                         <button onclick="addToQueue(${index})" title="Add to Queue" class="bg-purple-600 hover:bg-purple-700 px-2 py-0.5 rounded font-medium">Queue</button>
@@ -200,7 +200,7 @@
             }
 
             const title = escapeHtml(song.title);
-            const artist = escapeHtml(song.artist);
+            const artist = escapeHtml(song.artist || 'Unknown Artist');
             const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
 
             if (isVideo) {
@@ -273,7 +273,7 @@
                     <div class="overflow-hidden pr-2">
                         <span class="text-[10px] text-purple-400 font-bold mr-1">#${qIndex + 1}</span>
                         <span class="font-medium text-slate-200 truncate">${escapeHtml(song.title)}</span>
-                        <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist)}</p>
+                        <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist || 'Unknown Artist')}</p>
                     </div>
                     <button onclick="removeFromQueue(${qIndex})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5">✕</button>
                 </div>
@@ -343,47 +343,83 @@
             }
         }
 
+        // Helper to automatically parse title & artist from filename (e.g. "Artist - Title.mp3")
+        function parseFileName(filename) {
+            // Remove file extension
+            const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
+            
+            // Look for common separators like dash (-) or underscore (_)
+            let parts = nameWithoutExt.split(/[-_]/);
+            if (parts.length >= 2) {
+                return {
+                    artist: parts[0].trim(),
+                    title: parts.slice(1).join(' ').trim()
+                };
+            } else {
+                return {
+                    artist: "Unknown Artist",
+                    title: nameWithoutExt.trim()
+                };
+            }
+        }
+
+        // Bulk Upload and Auto-Extraction Form Handler
         uploadForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const title = document.getElementById("song-title").value;
-            const artist = document.getElementById("song-artist").value;
-            const fileInput = document.getElementById("song-file");
-            const file = fileInput.files[0];
+            const fileInput = document.getElementById("song-files");
+            const files = fileInput.files;
 
-            if (!file) return alert("Please select a file!");
+            if (!files || files.length === 0) return alert("Please select files or a folder!");
 
             const uploadBtn = document.getElementById("upload-btn");
-            uploadBtn.textContent = "Uploading...";
             uploadBtn.disabled = true;
 
-            try {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-                
-                const { error: uploadError } = await supabaseClient.storage
-                    .from("karaoke_songs")
-                    .upload(fileName, file);
+            let successCount = 0;
+            let totalFiles = files.length;
 
-                if (uploadError) throw uploadError;
+            for (let i = 0; i < totalFiles; i++) {
+                const file = files[i];
+                // Skip non-audio/video files if any crept in
+                if (!file.type.startsWith('audio/') && !file.type.startsWith('video/') && !file.name.match(/\.(mp3|wav|ogg|mp4|webm|m4a|flac)$/i)) {
+                    continue;
+                }
 
-                const { data: publicUrlData } = supabaseClient.storage
-                    .from("karaoke_songs")
-                    .getPublicUrl(fileName);
+                uploadProgress.textContent = `Uploading file ${i + 1} of ${totalFiles}: ${file.name}`;
 
-                const { error: dbError } = await supabaseClient.from("songs").insert([
-                    { title, artist, file_path: publicUrlData.publicUrl }
-                ]);
+                try {
+                    // Automatically extract artist and title from filename
+                    const parsed = parseFileName(file.name);
+                    const title = parsed.title;
+                    const artist = parsed.artist;
 
-                if (dbError) throw dbError;
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+                    
+                    const { error: uploadError } = await supabaseClient.storage
+                        .from("karaoke_songs")
+                        .upload(fileName, file);
 
-                uploadForm.reset();
-            } catch (err) {
-                console.error("Upload error:", err);
-                alert("Error uploading song: " + err.message);
-            } finally {
-                uploadBtn.textContent = "Upload & Sync";
-                uploadBtn.disabled = false;
+                    if (uploadError) throw uploadError;
+
+                    const { data: publicUrlData } = supabaseClient.storage
+                        .from("karaoke_songs")
+                        .getPublicUrl(fileName);
+
+                    const { error: dbError } = await supabaseClient.from("songs").insert([
+                        { title, artist, file_path: publicUrlData.publicUrl }
+                    ]);
+
+                    if (dbError) throw dbError;
+                    successCount++;
+                } catch (err) {
+                    console.error(`Error uploading ${file.name}:`, err);
+                }
             }
+
+            uploadProgress.textContent = `Successfully uploaded ${successCount} of ${totalFiles} songs! 🎉`;
+            uploadBtn.disabled = false;
+            uploadForm.reset();
+            setTimeout(() => { uploadProgress.textContent = ""; }, 5000);
         });
 
         window.deleteSong = async function(id) {
@@ -408,7 +444,7 @@
                     }
                     const query = searchInput.value.toLowerCase();
                     const filtered = allSongs.filter(song => 
-                        song.title.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query)
+                        song.title.toLowerCase().includes(query) || (song.artist && song.artist.toLowerCase().includes(query))
                     );
                     renderSongs(filtered);
                 })
@@ -418,7 +454,7 @@
         searchInput.addEventListener("input", (e) => {
             const query = e.target.value.toLowerCase();
             const filtered = allSongs.filter(song => 
-                song.title.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query)
+                song.title.toLowerCase().includes(query) || (song.artist && song.artist.toLowerCase().includes(query))
             );
             selectedLibraryIndex = 0;
             renderSongs(filtered);
