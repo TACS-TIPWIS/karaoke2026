@@ -17,6 +17,31 @@
         input[type=range] {
             accent-color: #ec4899;
         }
+        /* True TV Fullscreen Expansion */
+        #monitor-card:fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: none !important;
+            max-height: none !important;
+            border-radius: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            background-color: #020617 !important;
+            padding: 24px !important;
+            box-sizing: border-box !important;
+        }
+        #monitor-card:fullscreen #player-container {
+            flex-grow: 1 !important;
+            min-height: 0 !important;
+            height: 100% !important;
+        }
+        #monitor-card:fullscreen video,
+        #monitor-card:fullscreen audio {
+            width: 100% !important;
+            height: 100% !important;
+            max-height: calc(100vh - 180px) !important;
+            object-fit: contain !important;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
@@ -327,10 +352,9 @@
             }).join('');
         }
 
-        // Keypad Functions for Android TV Remote & On-Screen Keypad
         window.pressKey = function(digit) {
             let current = songNumberInput.value;
-            if (current.length >= 5) current = ""; // Reset if too long
+            if (current.length >= 5) current = "";
             current += digit;
             songNumberInput.value = current;
             previewSongByCode(current);
@@ -591,19 +615,34 @@
         function toggleFullScreen() {
             const monitorCard = document.getElementById("monitor-card");
             if (!document.fullscreenElement) {
-                if (monitorCard.requestFullscreen) monitorCard.requestFullscreen();
+                if (monitorCard.requestFullscreen) {
+                    monitorCard.requestFullscreen();
+                } else if (monitorCard.webkitRequestFullscreen) { /* Safari / Older Android TV */
+                    monitorCard.webkitRequestFullscreen();
+                } else if (monitorCard.msRequestFullscreen) { /* IE/Edge */
+                    monitorCard.msRequestFullscreen();
+                }
                 document.getElementById("fullscreen-btn").textContent = "✕ Exit Fullscreen";
             } else {
-                if (document.exitFullscreen) document.exitFullscreen();
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
                 document.getElementById("fullscreen-btn").textContent = "⛶ Fullscreen";
             }
         }
+
+        document.addEventListener("fullscreenchange", () => {
+            if (!document.fullscreenElement) {
+                document.getElementById("fullscreen-btn").textContent = "⛶ Fullscreen";
+            }
+        });
 
         // Global Android TV Remote / Physical Keyboard Listener
         document.addEventListener("keydown", (e) => {
             if (allSongs.length === 0) return;
 
-            // Capture physical remote numbers or keyboard digits
             if (e.key >= '0' && e.key <= '9') {
                 if (document.activeElement !== searchInput) {
                     e.preventDefault();
