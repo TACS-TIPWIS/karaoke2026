@@ -13,13 +13,16 @@
             color: #ffffff;
             margin: 0;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
-        .container {
-            width: 100%;
-            max-width: 600px;
+        .app-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr 350px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        @media (max-width: 1100px) {
+            .app-layout { grid-template-columns: 1fr; }
         }
         .card {
             background: #1a1a2e;
@@ -29,7 +32,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
         h2, h3 { margin-top: 0; color: #e94560; }
-        input, button {
+        input, button, select {
             width: 100%;
             padding: 10px;
             margin-top: 8px;
@@ -47,7 +50,7 @@
             cursor: pointer;
         }
         button:hover { background: #ff6b81; }
-        .song-item {
+        .song-item, .queue-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -55,6 +58,24 @@
             padding: 10px;
             border-radius: 6px;
             margin-bottom: 8px;
+        }
+        #tv-monitor {
+            width: 100%;
+            height: 250px;
+            background: #000;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #555;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        #tv-monitor video, #tv-monitor audio {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         /* Login Overlay */
         #login-modal {
@@ -91,38 +112,69 @@
         </div>
     </div>
 
-    <div class="container">
-        <!-- Header Info -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 style="margin:0;">🎤 Karaoke Songs Hub</h2>
+    <!-- MAIN APP CONTAINER -->
+    <div style="max-width: 1400px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin:0;">🎤 Karaoke Songs Hub Pro</h2>
             <button onclick="handleLogout()" style="width: auto; padding: 6px 12px; background: #333; font-size: 12px;">Logout</button>
         </div>
 
-        <!-- Song Library Card -->
-        <div class="card">
-            <h3>Library</h3>
-            <input type="text" id="search-input" placeholder="Search library..." oninput="filterSongs()">
-            <div id="song-list" style="margin-top: 15px; max-height: 250px; overflow-y: auto;">
-                <!-- Populated dynamically -->
+        <div class="app-layout">
+            <!-- COLUMN 1: Library & Search -->
+            <div>
+                <div class="card">
+                    <h3>Library</h3>
+                    <input type="text" id="search-input" placeholder="Search library..." oninput="filterSongs()">
+                    <div id="song-list" style="margin-top: 15px; max-height: 400px; overflow-y: auto;">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Admin Upload Section (Hidden for normal users) -->
+                <div id="add-song-section" class="card" style="display: none;">
+                    <h3>Add New Song</h3>
+                    <input type="text" id="song-title" placeholder="Song Title">
+                    <input type="text" id="song-artist" placeholder="Artist">
+                    <input type="text" id="song-url" placeholder="Media URL (Audio/Video file link)">
+                    <button onclick="uploadSong()">Upload & Sync</button>
+                </div>
             </div>
-        </div>
 
-        <!-- Admin Upload Section (Hidden for normal users) -->
-        <div id="add-song-section" class="card" style="display: none;">
-            <h3>Add New Song</h3>
-            <input type="text" id="song-title" placeholder="Song Title">
-            <input type="text" id="song-artist" placeholder="Artist">
-            <input type="file" id="song-file" accept="audio/*,video/*" style="background:none; border:none; padding:0;">
-            <button onclick="uploadSong()">Upload & Sync</button>
-        </div>
+            <!-- COLUMN 2: TV Monitor & Controls -->
+            <div>
+                <div class="card">
+                    <h3>📺 TV Monitor</h3>
+                    <div id="tv-monitor">
+                        <span id="monitor-placeholder">No song playing</span>
+                    </div>
+                    <div id="now-playing-info" style="text-align: center; margin-bottom: 15px;">
+                        <strong id="current-title">-</strong><br>
+                        <small id="current-artist" style="color:#aaa;">-</small>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="playNextInQueue()" style="background: #0f3460;">Next Song</button>
+                    </div>
+                </div>
 
-        <!-- Admin User Management Panel (Visible only to admin 'ronel') -->
-        <div id="admin-user-section" class="card" style="display: none;">
-            <h3>👥 Manage Allowed Users</h3>
-            <input type="text" id="new-username" placeholder="New User Username">
-            <input type="password" id="new-password" placeholder="New User Password">
-            <button onclick="createNewUser()" style="background: #0f3460;">Generate User Account</button>
-            <div id="user-list" style="margin-top: 15px; font-size: 13px; max-height: 150px; overflow-y: auto;"></div>
+                <!-- Admin User Management Panel (Visible only to admin 'ronel') -->
+                <div id="admin-user-section" class="card" style="display: none;">
+                    <h3>👥 Manage Allowed Users</h3>
+                    <input type="text" id="new-username" placeholder="New User Username">
+                    <input type="password" id="new-password" placeholder="New User Password">
+                    <button onclick="createNewUser()" style="background: #0f3460;">Generate User Account</button>
+                    <div id="user-list" style="margin-top: 15px; font-size: 13px; max-height: 150px; overflow-y: auto;"></div>
+                </div>
+            </div>
+
+            <!-- COLUMN 3: Synchronized Queue (Right Corner) -->
+            <div>
+                <div class="card" style="height: 100%;">
+                    <h3>🎵 Song Queue</h3>
+                    <div id="queue-list" style="margin-top: 15px; max-height: 500px; overflow-y: auto;">
+                        <p style="color:#aaa; font-size:13px; text-align:center;">Queue is empty</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -134,6 +186,7 @@
 
         let currentUser = null;
         let allSongs = [];
+        let songQueue = [];
 
         // --- AUTHENTICATION LOGIC ---
         async function handleLogin() {
@@ -225,7 +278,7 @@
             }
         }
 
-        // --- SONG LIBRARY MANAGEMENT ---
+        // --- SONG LIBRARY & QUEUE MANAGEMENT ---
         async function loadSongs() {
             const { data, error } = await supabaseClient.from('songs').select('*');
             if (!error && data) {
@@ -249,15 +302,18 @@
                 
                 let deleteBtn = '';
                 if (currentUser && currentUser.role === 'admin') {
-                    deleteBtn = `<button onclick="deleteSong('${song.id}')" style="width:auto; padding:5px 10px; background:#d9534f; margin:0;">Delete</button>`;
+                    deleteBtn = `<button onclick="deleteSong('${song.id}')" style="width:auto; padding:5px 8px; background:#d9534f; margin:0;">Del</button>`;
                 }
 
                 item.innerHTML = `
-                    <div>
+                    <div style="cursor:pointer; flex-grow:1;" onclick="addToQueue('${song.id}')">
                         <strong>${song.title}</strong><br>
                         <small style="color:#aaa;">${song.artist || 'Unknown'}</small>
                     </div>
-                    ${deleteBtn}
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="addToQueue('${song.id}')" style="width:auto; padding:5px 10px; margin:0; background:#0f3460;">Add</button>
+                        ${deleteBtn}
+                    </div>
                 `;
                 listDiv.appendChild(item);
             });
@@ -271,6 +327,70 @@
             renderSongs(filtered);
         }
 
+        function addToQueue(songId) {
+            const song = allSongs.find(s => s.id == songId);
+            if (song) {
+                songQueue.push(song);
+                renderQueue();
+                if (songQueue.length === 1) {
+                    playSong(songQueue[0]);
+                }
+            }
+        }
+
+        function renderQueue() {
+            const queueDiv = document.getElementById('queue-list');
+            if (songQueue.length === 0) {
+                queueDiv.innerHTML = '<p style="color:#aaa; font-size:13px; text-align:center;">Queue is empty</p>';
+                return;
+            }
+
+            queueDiv.innerHTML = '';
+            songQueue.forEach((song, index) => {
+                const item = document.createElement('div');
+                item.className = 'queue-item';
+                item.innerHTML = `
+                    <div>
+                        <small style="color:#e94560;">#${index + 1}</small><strong>${song.title}</strong><br>
+                        <small style="color:#aaa;">${song.artist || 'Unknown'}</small>
+                    </div>
+                    <button onclick="removeFromQueue(${index})" style="width:auto; padding:4px 8px; background:#333; margin:0;">✕</button>
+                `;
+                queueDiv.appendChild(item);
+            });
+        }
+
+        function removeFromQueue(index) {
+            songQueue.splice(index, 1);
+            renderQueue();
+        }
+
+        function playSong(song) {
+            const monitor = document.getElementById('tv-monitor');
+            document.getElementById('current-title').innerText = song.title;
+            document.getElementById('current-artist').innerText = song.artist || 'Unknown';
+
+            if (song.url) {
+                monitor.innerHTML = `<video src="${song.url}" controls autoplay style="width:100%; height:100%;"></video>`;
+            } else {
+                monitor.innerHTML = `<div style="color:#aaa; text-align:center;">Playing audio/simulation for: <strong>${song.title}</strong></div>`;
+            }
+        }
+
+        function playNextInQueue() {
+            if (songQueue.length > 0) {
+                songQueue.shift(); // remove currently playing
+                renderQueue();
+                if (songQueue.length > 0) {
+                    playSong(songQueue[0]);
+                } else {
+                    document.getElementById('tv-monitor').innerHTML = '<span id="monitor-placeholder">No song playing</span>';
+                    document.getElementById('current-title').innerText = '-';
+                    document.getElementById('current-artist').innerText = '-';
+                }
+            }
+        }
+
         async function uploadSong() {
             if (!currentUser || currentUser.role !== 'admin') {
                 alert("Unauthorized");
@@ -278,14 +398,23 @@
             }
             const title = document.getElementById('song-title').value.trim();
             const artist = document.getElementById('song-artist').value.trim();
-            const fileInput = document.getElementById('song-file');
+            const url = document.getElementById('song-url').value.trim();
 
-            if (!title || fileInput.files.length === 0) {
-                alert("Please provide a song title and select a file.");
+            if (!title) {
+                alert("Please provide a song title.");
                 return;
             }
 
-            alert("Upload triggered for " + title);
+            const { error } = await supabaseClient.from('songs').insert([{ title, artist, url }]);
+            if (error) {
+                alert("Error adding song: " + error.message);
+            } else {
+                alert("Song added successfully!");
+                document.getElementById('song-title').value = '';
+                document.getElementById('song-artist').value = '';
+                document.getElementById('song-url').value = '';
+                loadSongs();
+            }
         }
 
         async function deleteSong(id) {
