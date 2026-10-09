@@ -11,8 +11,10 @@
     <style>
         .tv-focused {
             border-color: #c084fc !important;
-            background-color: rgba(88, 28, 135, 0.4) !important;
+            background-color: rgba(88, 28, 135, 0.5) !important;
             box-shadow: 0 0 15px rgba(192, 132, 252, 0.4);
+            transform: scale(1.01);
+            transition: all 0.1s ease-in-out;
         }
         input[type=range] {
             accent-color: #ec4899;
@@ -97,7 +99,7 @@
 
                 <!-- Live Song Preview Badge -->
                 <div id="code-preview" class="text-[11px] text-slate-400 bg-slate-950 p-2 rounded border border-slate-800 min-h-[36px] flex items-center mt-1">
-                    Select code using remote or keypad...
+                    Use remote Arrows to browse or numbers to select...
                 </div>
 
                 <!-- Search Library Filter -->
@@ -108,7 +110,7 @@
             <!-- Song Library -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col">
                 <h2 class="text-lg font-semibold mb-3 text-purple-300 flex items-center justify-between">
-                    <span>📚 Library</span>
+                    <span>📚 Library (Remote Arrows)</span>
                     <span id="song-count" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">0 songs</span>
                 </h2>
                 <div id="song-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
@@ -333,8 +335,9 @@
 
             songListEl.innerHTML = songs.map((song, index) => {
                 const assignedCode = BASE_SONG_CODE + index;
+                const isSelected = (index === selectedLibraryIndex);
                 return `
-                    <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border border-slate-800 p-2 rounded-lg transition text-xs ${index === selectedLibraryIndex ? 'tv-focused' : 'hover:border-purple-500'}">
+                    <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border p-2 rounded-lg transition text-xs ${isSelected ? 'tv-focused border-purple-400' : 'border-slate-800 hover:border-purple-600'}">
                         <div class="overflow-hidden pr-2 flex items-center gap-2">
                             <span class="text-[10px] font-bold text-pink-400 bg-pink-950/50 px-1.5 py-0.5 rounded shrink-0">#${assignedCode}</span>
                             <div class="truncate">
@@ -369,7 +372,7 @@
 
         window.clearCodeInput = function() {
             songNumberInput.value = "";
-            codePreviewEl.innerHTML = `<span class="text-slate-500">Keypad cleared.</span>`;
+            codePreviewEl.innerHTML = `<span class="text-slate-500">Keypad cleared. Use arrows or numbers.</span>`;
         };
 
         window.previewSongByCode = function(val) {
@@ -389,23 +392,32 @@
         };
 
         window.queueSongByCode = function() {
-            const code = parseInt(songNumberInput.value);
-            if (isNaN(code) || code < BASE_SONG_CODE || code > BASE_SONG_CODE + allSongs.length - 1) {
-                alert(`Please enter a valid karaoke code between ${BASE_SONG_CODE} and ${BASE_SONG_CODE + allSongs.length - 1}`);
-                return;
+            // If user typed a number in code input, queue that specific song
+            if (songNumberInput.value.trim() !== "") {
+                const code = parseInt(songNumberInput.value);
+                if (!isNaN(code) && code >= BASE_SONG_CODE && code <= BASE_SONG_CODE + allSongs.length - 1) {
+                    const targetIndex = code - BASE_SONG_CODE;
+                    selectedLibraryIndex = targetIndex;
+                    renderSongs(allSongs);
+                    scrollSelectedIntoView();
+                    addToQueue(targetIndex);
+                    songNumberInput.value = "";
+                    codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Successfully queued code #${code}! 🎉</span>`;
+                    return;
+                }
             }
-            const targetIndex = code - BASE_SONG_CODE;
-            selectedLibraryIndex = targetIndex;
-            renderSongs(allSongs);
-            scrollSelectedIntoView();
-
-            addToQueue(targetIndex);
-            songNumberInput.value = "";
-            codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Successfully queued code #${code}! 🎉</span>`;
+            
+            // Otherwise, queue whatever song is currently highlighted by the arrow keys in the library
+            if (currentDisplayedSongs.length > 0) {
+                const song = currentDisplayedSongs[selectedLibraryIndex];
+                const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
+                addToQueue(allSongs.indexOf(song));
+                codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Successfully queued #${assignedCode}: ${escapeHtml(song.title)}! 🎉</span>`;
+            }
         };
 
         window.addToQueue = function(index) {
-            const song = currentDisplayedSongs[index];
+            const song = allSongs[index] || currentDisplayedSongs[index];
             if (!song) return;
             songQueue.push(song);
             renderQueue();
@@ -416,7 +428,7 @@
         };
 
         window.playSongImmediate = function(index) {
-            const song = currentDisplayedSongs[index];
+            const song = allSongs[index] || currentDisplayedSongs[index];
             if (!song) return;
             songQueue.unshift(song);
             renderQueue();
@@ -641,7 +653,7 @@
 
         // Global Android TV Remote / Physical Keyboard Listener
         document.addEventListener("keydown", (e) => {
-            if (allSongs.length === 0) return;
+            if (currentDisplayedSongs.length === 0) return;
 
             // Capture digits 0-9 from TV remote
             if (e.key >= '0' && e.key <= '9') {
@@ -655,7 +667,6 @@
                     backspaceKey();
                 }
             } else if (e.key === "Enter" || e.key === "Ok" || e.code === "Enter" || e.keyCode === 13) {
-                // When OK / Enter is pressed on remote, queue the currently typed song code directly!
                 if (document.activeElement !== searchInput) {
                     e.preventDefault();
                     queueSongByCode();
@@ -684,19 +695,28 @@
                 return;
             }
 
+            // TV Remote Arrow Down
             if (e.key === "ArrowDown") {
                 e.preventDefault();
                 if (selectedLibraryIndex < currentDisplayedSongs.length - 1) {
                     selectedLibraryIndex++;
                     renderSongs(currentDisplayedSongs);
                     scrollSelectedIntoView();
+                    const song = currentDisplayedSongs[selectedLibraryIndex];
+                    const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
+                    codePreviewEl.innerHTML = `<span class="text-pink-300 font-semibold truncate">🎵 Selected #${assignedCode}: ${escapeHtml(song.title)}</span>`;
                 }
-            } else if (e.key === "ArrowUp") {
+            } 
+            // TV Remote Arrow Up
+            else if (e.key === "ArrowUp") {
                 e.preventDefault();
                 if (selectedLibraryIndex > 0) {
                     selectedLibraryIndex--;
                     renderSongs(currentDisplayedSongs);
                     scrollSelectedIntoView();
+                    const song = currentDisplayedSongs[selectedLibraryIndex];
+                    const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
+                    codePreviewEl.innerHTML = `<span class="text-pink-300 font-semibold truncate">🎵 Selected #${assignedCode}: ${escapeHtml(song.title)}</span>`;
                 }
             }
         });
