@@ -127,9 +127,9 @@
     </div>
 
     <script>
-        // REPLACE WITH YOUR ACTUAL SUPABASE CREDENTIALS
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        // SUPABASE CONFIGURATION
+        const SUPABASE_URL = 'https://wnoezoiyjnvftvpbosva.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Ftro51fz2tJtgFbQzhq4uw_Txmc_kGi';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
@@ -248,7 +248,6 @@
                 item.className = 'song-item';
                 
                 let deleteBtn = '';
-                // Only allow admins to delete songs
                 if (currentUser && currentUser.role === 'admin') {
                     deleteBtn = `<button onclick="deleteSong('${song.id}')" style="width:auto; padding:5px 10px; background:#d9534f; margin:0;">Delete</button>`;
                 }
@@ -286,7 +285,6 @@
                 return;
             }
 
-            // Upload handling logic goes here...
             alert("Upload triggered for " + title);
         }
 
