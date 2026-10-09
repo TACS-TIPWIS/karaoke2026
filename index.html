@@ -42,11 +42,19 @@
     <main class="flex-grow container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <!-- LEFT COLUMN: Song Library & Upload Panel (3 cols) -->
-        <div class="lg:col-span-3 space-y-6 flex flex-col">
-            <!-- Search -->
-            <div>
+        <div class="lg:col-span-3 space-y-4 flex flex-col">
+            <!-- Search & Number Quick Select Box -->
+            <div class="space-y-2">
                 <input type="text" id="search-input" placeholder="Search library (Remote OK)..." 
                     class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500 text-sm">
+                
+                <div class="flex gap-2">
+                    <input type="number" id="song-number-input" placeholder="Song # (Remote 0-9)" min="1"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:border-pink-500 text-xs font-bold text-pink-300">
+                    <button onclick="selectSongByNumber()" class="bg-pink-600 hover:bg-pink-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs shrink-0 transition">
+                        Queue
+                    </button>
+                </div>
             </div>
 
             <!-- Song Library -->
@@ -55,7 +63,7 @@
                     <span>📚 Library</span>
                     <span id="song-count" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">0 songs</span>
                 </h2>
-                <div id="song-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                <div id="song-list" class="space-y-2 max-h-[260px] overflow-y-auto pr-1">
                     <p class="text-slate-500 text-center py-6 text-sm">Loading songs...</p>
                 </div>
             </div>
@@ -194,6 +202,7 @@
         const uploadForm = document.getElementById("upload-form");
         const playerContainer = document.getElementById("player-container");
         const searchInput = document.getElementById("search-input");
+        const songNumberInput = document.getElementById("song-number-input");
         const queueListEl = document.getElementById("queue-list");
         const queueCountEl = document.getElementById("queue-count");
         const uploadProgress = document.getElementById("upload-progress");
@@ -210,14 +219,13 @@
 
         const ADMIN_PASSCODE = "gege@635185";
 
-        // Audio Engine State Variables
         let audioCtx = null;
         let audioElement = null;
         let audioSourceNode = null;
         let gainNode = null;
-        let currentPitchShift = 0; // semitones (-6 to +6)
-        let currentTempo = 1.0;    // playback rate (0.5 to 1.5)
-        let currentVol = 1.0;      // volume (0 to 1)
+        let currentPitchShift = 0;
+        let currentTempo = 1.0;
+        let currentVol = 1.0;
 
         function toggleAdminMode() {
             if (!isAdmin) {
@@ -275,9 +283,12 @@
 
             songListEl.innerHTML = songs.map((song, index) => `
                 <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border border-slate-800 p-2 rounded-lg transition text-xs ${index === selectedLibraryIndex ? 'tv-focused' : 'hover:border-purple-500'}">
-                    <div class="overflow-hidden pr-2">
-                        <h3 class="font-medium text-slate-200 truncate">${escapeHtml(song.title)}</h3>
-                        <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist || 'Unknown Artist')}</p>
+                    <div class="overflow-hidden pr-2 flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-pink-400 bg-pink-950/50 px-1.5 py-0.5 rounded shrink-0">#${index + 1}</span>
+                        <div class="truncate">
+                            <h3 class="font-medium text-slate-200 truncate">${escapeHtml(song.title)}</h3>
+                            <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist || 'Unknown Artist')}</p>
+                        </div>
                     </div>
                     <div class="flex gap-1 shrink-0">
                         <button onclick="addToQueue(${index})" title="Add to Queue" class="bg-purple-600 hover:bg-purple-700 px-2 py-0.5 rounded font-medium text-white">Queue</button>
@@ -287,6 +298,21 @@
                 </div>
             `).join('');
         }
+
+        window.selectSongByNumber = function() {
+            const num = parseInt(songNumberInput.value);
+            if (isNaN(num) || num < 1 || num > currentDisplayedSongs.length) {
+                alert(`Please enter a valid song number between 1 and ${currentDisplayedSongs.length}`);
+                return;
+            }
+            const targetIndex = num - 1;
+            selectedLibraryIndex = targetIndex;
+            renderSongs(currentDisplayedSongs);
+            scrollSelectedIntoView();
+
+            addToQueue(targetIndex);
+            songNumberInput.value = "";
+        };
 
         window.addToQueue = function(index) {
             const song = currentDisplayedSongs[index];
@@ -325,7 +351,6 @@
             const artist = escapeHtml(song.artist || 'Unknown Artist');
             const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
 
-            // Render player UI
             if (isVideo) {
                 playerContainer.innerHTML = `
                     <div class="w-full flex justify-between items-center mb-2">
@@ -356,7 +381,6 @@
             setupAudioContextPipeline();
         }
 
-        // Web Audio API Pipeline for Pitch & Tempo
         function setupAudioContextPipeline() {
             try {
                 audioElement = document.getElementById("media-player");
@@ -369,7 +393,6 @@
                     audioCtx.resume();
                 }
 
-                // If source node is already attached, disconnect it first
                 if (audioSourceNode) {
                     try { audioSourceNode.disconnect(); } catch(e){}
                 }
@@ -377,20 +400,17 @@
                 audioSourceNode = audioCtx.createMediaElementSource(audioElement);
                 gainNode = audioCtx.createGain();
 
-                // Apply initial settings
                 applyAudioSettings();
 
                 audioSourceNode.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
             } catch (err) {
-                console.error("Web Audio API setup error (CORS or audio policy):", err);
+                console.error("Web Audio API setup error:", err);
             }
         }
 
         function applyAudioSettings() {
             if (!audioElement) return;
-
-            // Effective playbackRate combines tempo and pitch shift formula (2 ^ (semitones / 12))
             const pitchFactor = Math.pow(2, currentPitchShift / 12);
             const totalRate = currentTempo * pitchFactor;
 
@@ -415,16 +435,12 @@
         window.updateVolume = function(val) {
             currentVol = parseInt(val) / 100;
             document.getElementById("volume-val").textContent = `${val}%`;
-            if (audioElement) {
-                audioElement.volume = currentVol;
-            }
-            if (gainNode) {
-                gainNode.gain.value = currentVol;
-            }
+            if (audioElement) audioElement.volume = currentVol;
+            if (gainNode) gainNode.gain.value = currentVol;
         };
 
         window.handleMediaError = function() {
-            alert("Error loading media file. Please check if the file URL is accessible or if it's a valid audio/video format.");
+            alert("Error loading media file. Please check if the file URL is accessible.");
             playNextInQueue();
         };
 
@@ -458,11 +474,7 @@
         window.togglePlayPause = function() {
             const player = document.getElementById("media-player");
             if (player) {
-                if (player.paused) {
-                    player.play();
-                } else {
-                    player.pause();
-                }
+                if (player.paused) { player.play(); } else { player.pause(); }
             }
         };
 
@@ -513,30 +525,33 @@
         function toggleFullScreen() {
             const monitorCard = document.getElementById("monitor-card");
             if (!document.fullscreenElement) {
-                if (monitorCard.requestFullscreen) {
-                    monitorCard.requestFullscreen();
-                } else if (monitorCard.webkitRequestFullscreen) {
-                    monitorCard.webkitRequestFullscreen();
-                }
+                if (monitorCard.requestFullscreen) monitorCard.requestFullscreen();
                 document.getElementById("fullscreen-btn").textContent = "✕ Exit Fullscreen";
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
+                if (document.exitFullscreen) document.exitFullscreen();
                 document.getElementById("fullscreen-btn").textContent = "⛶ Fullscreen";
             }
         }
 
-        document.addEventListener("fullscreenchange", () => {
-            if (!document.fullscreenElement) {
-                document.getElementById("fullscreen-btn").textContent = "⛶ Fullscreen";
+        songNumberInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                selectSongByNumber();
             }
         });
 
+        // Global Remote Controller Key Listener (Supports Android TV Remote Numeric Keys & Media Keys)
         document.addEventListener("keydown", (e) => {
             if (currentDisplayedSongs.length === 0) return;
+
+            // Handle Android TV Numeric Remote Keys (Digit0 - Digit9 or Numpad0 - Numpad9)
+            if (/^(Digit|Numpad)[0-9]$/.test(e.code) \vert{}\vert{} /^[0-9]$/.test(e.key)) {
+                // If user is not already typing inside the search box, redirect input directly to song number box
+                if (document.activeElement !== searchInput) {
+                    if (document.activeElement !== songNumberInput) {
+                        songNumberInput.focus();
+                    }
+                }
+            }
 
             if (e.key === "MediaPlayPause" || e.code === "MediaPlayPause") {
                 e.preventDefault();
@@ -575,37 +590,24 @@
                 }
             } else if (e.key === "Enter") {
                 e.preventDefault();
-                if (document.activeElement !== searchInput) {
+                if (document.activeElement !== searchInput && document.activeElement !== songNumberInput) {
                     addToQueue(selectedLibraryIndex);
-                }
-            } else if (e.key === "Escape" || e.key === "Backspace") {
-                if (document.fullscreenElement) {
-                    e.preventDefault();
-                    document.exitFullscreen();
                 }
             }
         });
 
         function scrollSelectedIntoView() {
             const el = document.getElementById(`song-item-${selectedLibraryIndex}`);
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function parseFileName(filename) {
             const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
             let parts = nameWithoutExt.split(/[-_]/);
             if (parts.length >= 2) {
-                return {
-                    artist: parts[0].trim(),
-                    title: parts.slice(1).join(' ').trim()
-                };
+                return { artist: parts[0].trim(), title: parts.slice(1).join(' ').trim() };
             } else {
-                return {
-                    artist: "Unknown Artist",
-                    title: nameWithoutExt.trim()
-                };
+                return { artist: "Unknown Artist", title: nameWithoutExt.trim() };
             }
         }
 
@@ -615,7 +617,6 @@
 
             const fileInput = document.getElementById("song-files");
             const files = fileInput.files;
-
             if (!files || files.length === 0) return alert("Please select files first!");
 
             const uploadBtn = document.getElementById("upload-btn");
@@ -630,26 +631,16 @@
 
                 try {
                     const parsed = parseFileName(file.name);
-                    const title = parsed.title;
-                    const artist = parsed.artist;
-
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
                     
-                    const { error: uploadError } = await supabaseClient.storage
-                        .from("karaoke_songs")
-                        .upload(fileName, file);
-
+                    const { error: uploadError } = await supabaseClient.storage.from("karaoke_songs").upload(fileName, file);
                     if (uploadError) throw uploadError;
 
-                    const { data: publicUrlData } = supabaseClient.storage
-                        .from("karaoke_songs")
-                        .getPublicUrl(fileName);
-
+                    const { data: publicUrlData } = supabaseClient.storage.from("karaoke_songs").getPublicUrl(fileName);
                     const { error: dbError } = await supabaseClient.from("songs").insert([
-                        { title, artist, file_path: publicUrlData.publicUrl }
+                        { title: parsed.title, artist: parsed.artist, file_path: publicUrlData.publicUrl }
                     ]);
-
                     if (dbError) throw dbError;
                     successCount++;
                 } catch (err) {
@@ -670,7 +661,6 @@
                 const { error } = await supabaseClient.from("songs").delete().eq("id", id);
                 if (error) throw error;
             } catch (err) {
-                console.error("Delete error:", err);
                 alert("Error deleting song: " + err.message);
             }
         };
