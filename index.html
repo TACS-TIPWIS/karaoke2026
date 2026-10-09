@@ -617,9 +617,9 @@
             if (!document.fullscreenElement) {
                 if (monitorCard.requestFullscreen) {
                     monitorCard.requestFullscreen();
-                } else if (monitorCard.webkitRequestFullscreen) { /* Safari / Older Android TV */
+                } else if (monitorCard.webkitRequestFullscreen) {
                     monitorCard.webkitRequestFullscreen();
-                } else if (monitorCard.msRequestFullscreen) { /* IE/Edge */
+                } else if (monitorCard.msRequestFullscreen) {
                     monitorCard.msRequestFullscreen();
                 }
                 document.getElementById("fullscreen-btn").textContent = "✕ Exit Fullscreen";
@@ -643,17 +643,19 @@
         document.addEventListener("keydown", (e) => {
             if (allSongs.length === 0) return;
 
+            // Capture digits 0-9 from TV remote
             if (e.key >= '0' && e.key <= '9') {
                 if (document.activeElement !== searchInput) {
                     e.preventDefault();
                     pressKey(e.key);
                 }
-            } else if (e.key === "Backspace") {
+            } else if (e.key === "Backspace" || e.key === "Delete") {
                 if (document.activeElement !== searchInput) {
                     e.preventDefault();
                     backspaceKey();
                 }
-            } else if (e.key === "Enter") {
+            } else if (e.key === "Enter" || e.key === "Ok" || e.code === "Enter" || e.keyCode === 13) {
+                // When OK / Enter is pressed on remote, queue the currently typed song code directly!
                 if (document.activeElement !== searchInput) {
                     e.preventDefault();
                     queueSongByCode();
