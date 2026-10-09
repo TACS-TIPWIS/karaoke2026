@@ -93,10 +93,31 @@
                     <span>⭐ Queue</span>
                     <span id="queue-count" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">0 queued</span>
                 </h2>
-                <div id="queue-list" class="space-y-2 max-h-[450px] overflow-y-auto pr-1 flex-grow">
+                <div id="queue-list" class="space-y-2 max-h-[350px] overflow-y-auto pr-1 flex-grow">
                     <p class="text-slate-500 text-center py-12 text-sm">Queue is empty.<br>Add songs to sing next!</p>
                 </div>
-                <button onclick="clearQueue()" class="mt-3 w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 py-1.5 rounded transition">
+
+                <!-- Playback Control Buttons Box Above Clear Queue -->
+                <div class="mt-3 pt-3 border-t border-slate-800 space-y-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="togglePlayPause()" class="bg-purple-600 hover:bg-purple-700 text-xs font-semibold py-1.5 rounded transition text-white">
+                            ▶ / ❚❚ Play
+                        </button>
+                        <button onclick="stopMedia()" class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white text-xs font-semibold py-1.5 rounded transition border border-red-500/30">
+                            ⏹ Stop
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="playPreviousInQueue()" class="bg-slate-800 hover:bg-slate-700 text-xs font-semibold py-1.5 rounded transition text-slate-200">
+                            ⏮ Previous
+                        </button>
+                        <button onclick="playNextInQueue()" class="bg-slate-800 hover:bg-slate-700 text-xs font-semibold py-1.5 rounded transition text-slate-200">
+                            ⏭ Next
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="clearQueue()" class="mt-2 w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 py-1.5 rounded transition">
                     Clear Queue
                 </button>
             </div>
@@ -180,7 +201,6 @@
             songQueue.push(song);
             renderQueue();
             
-            // If nothing is currently playing, start playing from queue automatically
             if (!currentActiveSong && !document.querySelector('audio, video')) {
                 playNextInQueue();
             }
@@ -189,7 +209,6 @@
         window.playSongImmediate = function(index) {
             const song = currentDisplayedSongs[index];
             if (!song) return;
-            // Adds immediate pick to the front of queue and plays it
             songQueue.unshift(song);
             renderQueue();
             playNextInQueue();
@@ -246,7 +265,6 @@
             playNextInQueue();
         };
 
-        // Strict Queue Progression: Only plays if items remain in songQueue
         window.playNextInQueue = function() {
             if (songQueue.length > 0) {
                 const nextSong = songQueue.shift();
@@ -358,7 +376,6 @@
         document.addEventListener("keydown", (e) => {
             if (currentDisplayedSongs.length === 0) return;
 
-            // Media keys support for Android TV remotes
             if (e.key === "MediaPlayPause" || e.code === "MediaPlayPause") {
                 e.preventDefault();
                 togglePlayPause();
@@ -380,7 +397,6 @@
                 return;
             }
 
-            // Standard Library Navigation
             if (e.key === "ArrowDown") {
                 e.preventDefault();
                 if (selectedLibraryIndex < currentDisplayedSongs.length - 1) {
@@ -398,7 +414,6 @@
             } else if (e.key === "Enter") {
                 e.preventDefault();
                 if (document.activeElement !== searchInput) {
-                    // Enter key adds the currently highlighted library song straight to the queue
                     addToQueue(selectedLibraryIndex);
                 }
             } else if (e.key === "Escape" || e.key === "Backspace") {
@@ -416,7 +431,6 @@
             }
         }
 
-        // Helper to automatically parse title & artist from filename
         function parseFileName(filename) {
             const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
             let parts = nameWithoutExt.split(/[-_]/);
@@ -433,7 +447,6 @@
             }
         }
 
-        // Bulk Upload Form Handler
         uploadForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const fileInput = document.getElementById("song-files");
