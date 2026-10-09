@@ -72,11 +72,6 @@
             position: relative;
             overflow: hidden;
         }
-        #tv-monitor video, #tv-monitor audio {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
         .controls-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -140,9 +135,8 @@
                 <div id="add-song-section" class="card" style="display: none;">
                     <h3>Add New Song</h3>
                     <input type="text" id="song-title" placeholder="Song Title">
-                    <input type="text" id="song-artist" placeholder="Artist">
-                    <input type="text" id="song-url" placeholder="Media URL (Audio/Video file link)">
-                    <button onclick="uploadSong()">Upload & Sync</button>
+                    <input type="text" id="song-artist" placeholder="Singer / Artist">
+                    <button onclick="uploadSong()">Add Song to Server</button>
                 </div>
             </div>
 
@@ -231,7 +225,6 @@
                 applyUserPermissions();
                 document.getElementById('login-modal').style.display = 'none';
                 loadSongs();
-                initRealtimeSync();
             } catch (ex) {
                 err.innerText = "Login failed. Check connection.";
             }
@@ -293,22 +286,13 @@
             }
         }
 
-        // --- SONG LIBRARY & REALTIME SYNC ---
+        // --- SONG LIBRARY & MANAGEMENT ---
         async function loadSongs() {
             const { data, error } = await supabaseClient.from('songs').select('*');
             if (!error && data) {
                 allSongs = data;
                 renderSongs(allSongs);
             }
-        }
-
-        function initRealtimeSync() {
-            supabaseClient
-                .channel('public:songs')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'songs' }, payload => {
-                    loadSongs();
-                })
-                .subscribe();
         }
 
         function renderSongs(songs) {
@@ -407,31 +391,27 @@
             document.getElementById('current-title').innerText = song.title;
             document.getElementById('current-artist').innerText = song.artist || 'Unknown';
 
-            if (song.url && song.url.trim() !== '') {
-                monitor.innerHTML = `<video id="active-media" src="${song.url}" controls autoplay style="width:100%; height:100%;"></video>`;
-            } else {
-                monitor.innerHTML = `
-                    <div style="text-align:center; color:#e94560; padding:20px;">
-                        <p style="margin:0 0 10px 0; font-size:16px;">🎵 Now Playing (Simulation)</p>
-                        <strong>${song.title}</strong><br><small style="color:#aaa;">${song.artist || 'Unknown'}</small>
-                    </div>`;
-            }
+            monitor.innerHTML = `
+                <div style="text-align:center; color:#e94560; padding:20px;">
+                    <p style="margin:0 0 10px 0; font-size:16px;">🎤 Karaoke Playing</p>
+                    <strong style="font-size:20px; color:#fff;">${song.title}</strong><br>
+                    <small style="font-size:14px; color:#aaa;">${song.artist || 'Unknown'}</small>
+                </div>`;
             renderQueue();
         }
 
         // --- PLAYBACK CONTROLS ---
         function playMedia() {
-            const media = document.getElementById('active-media');
-            if (media) {
-                media.play();
-            } else if (songQueue.length > 0) {
+            if (songQueue.length > 0) {
                 playSong(songQueue[currentQueueIndex]);
+            } else {
+                alert("Queue is empty.");
             }
         }
 
         function pauseMedia() {
-            const media = document.getElementById('active-media');
-            if (media) media.pause();
+            const monitor = document.getElementById('tv-monitor');
+            monitor.innerHTML = `<div style="color:#aaa; text-align:center;">Paused</div>`;
         }
 
         function stopMedia() {
@@ -482,21 +462,19 @@
             }
             const title = document.getElementById('song-title').value.trim();
             const artist = document.getElementById('song-artist').value.trim();
-            const url = document.getElementById('song-url').value.trim();
 
             if (!title) {
                 alert("Please provide a song title.");
                 return;
             }
 
-            const { error } = await supabaseClient.from('songs').insert([{ title, artist, url }]);
+            const { error } = await supabaseClient.from('songs').insert([{ title, artist }]);
             if (error) {
                 alert("Error adding song: " + error.message);
             } else {
-                alert("Song added successfully!");
+                alert("Song added to server successfully!");
                 document.getElementById('song-title').value = '';
                 document.getElementById('song-artist').value = '';
-                document.getElementById('song-url').value = '';
                 loadSongs();
             }
         }
@@ -517,7 +495,6 @@
                 applyUserPermissions();
                 document.getElementById('login-modal').style.display = 'none';
                 loadSongs();
-                initRealtimeSync();
             }
         });
     </script>
