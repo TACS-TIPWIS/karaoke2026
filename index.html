@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karaoke Songs Hub</title>
+    <!-- Tailwind CSS for modern UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JavaScript SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .tv-focused {
+            border-color: #c084fc !important;
+            background-color: rgba(88, 28, 135, 0.4) !important;
+            box-shadow: 0 0 15px rgba(192, 132, 252, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 p-4 shadow-md flex justify-between items-center">
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+            🎤 Karaoke Songs Hub
+        </h1>
+        <div id="connection-status" class="text-sm px-3 py-1 rounded-full bg-yellow-600 text-yellow-100">
+            Connecting to Supabase...
+        </div>
+    </header>
+
+    <!-- Main Layout (12-Column Grid: 3 Left | 6 Center | 3 Right) -->
+    <main class="flex-grow container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT COLUMN: Song Library & Upload Panel (3 cols) -->
+        <div class="lg:col-span-3 space-y-6 flex flex-col">
+            <!-- Search -->
+            <div>
+                <input type="text" id="search-input" placeholder="Search library (Remote OK)..." 
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500 text-sm">
+            </div>
+
+            <!-- Song Library -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col">
+                <h2 class="text-lg font-semibold mb-3 text-purple-300 flex items-center justify-between">
+                    <span>📚 Library</span>
+                    <span id="song-count" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">0 songs</span>
+                </h2>
+                <div id="song-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                    <p class="text-slate-500 text-center py-6 text-sm">Loading songs...</p>
+                </div>
+            </div>
+
+            <!-- Add New Song Panel -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
+                <h2 class="text-md font-semibold text-purple-300">Add New Song</h2>
+                <form id="upload-form" class="space-y-3">
+                    <div class="space-y-2">
+                        <input type="text" id="song-title" placeholder="Song Title" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-purple-500">
+                        <input type="text" id="song-artist" placeholder="Artist" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <input type="file" id="song-file" accept="audio/*,video/*" required class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700">
+                    </div>
+                    <button type="submit" id="upload-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-semibold py-1.5 rounded hover:opacity-90 transition">
+                        Upload & Sync
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- CENTER COLUMN: Main Stage Monitor (6 cols - Expanded Screen with Fullscreen Button) -->
+        <div class="lg:col-span-6 space-y-6 flex flex-col">
+            <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-lg font-semibold text-pink-300 flex items-center gap-2">
+                        <span>📺 Main Stage Monitor</span>
+                    </h2>
+                    <button onclick="toggleFullScreen()" id="fullscreen-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded transition border border-slate-700">
+                        ⛶ Fullscreen
+                    </button>
+                </div>
+                <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex-grow flex flex-col items-center justify-center p-6 text-slate-500 text-center min-h-[450px]">
+                    <div class="space-y-2">
+                        <span class="text-4xl">🎵</span>
+                        <p class="text-sm">No track playing right now.<br>Pick a song from the library or queue!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Song Queue (3 cols) -->
+        <div class="lg:col-span-3 space-y-6 flex flex-col">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col">
+                <h2 class="text-lg font-semibold mb-3 text-purple-300 flex items-center justify-between">
+                    <span>⭐ Queue</span>
+                    <span id="queue-count" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">0 queued</span>
+                </h2>
+                <div id="queue-list" class="space-y-2 max-h-[450px] overflow-y-auto pr-1 flex-grow">
+                    <p class="text-slate-500 text-center py-12 text-sm">Queue is empty.<br>Add songs to sing next!</p>
+                </div>
+                <button onclick="clearQueue()" class="mt-3 w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 py-1.5 rounded transition">
+                    Clear Queue
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Supabase & App Script -->
+    <script>
+        const SUPABASE_URL = "https://wnoezoiyjnvftvpbosva.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_Ftro51fz2tJtgFbQzhq4uw_Txmc_kGi";
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const statusEl = document.getElementById("connection-status");
+        const songListEl = document.getElementById("song-list");
+        const songCountEl = document.getElementById("song-count");
+        const uploadForm = document.getElementById("upload-form");
+        const playerContainer = document.getElementById("player-container");
+        const searchInput = document.getElementById("search-input");
+        const queueListEl = document.getElementById("queue-list");
+        const queueCountEl = document.getElementById("queue-count");
+
+        let allSongs = [];
+        let currentDisplayedSongs = [];
+        let songQueue = [];
+        let selectedLibraryIndex = 0;
+
+        async function initApp() {
+            try {
+                const { data, error } = await supabaseClient.from("songs").select("*").order("created_at", { ascending: false });
+                if (error) throw error;
+                
+                statusEl.textContent = "Cloud Connected 🟢";
+                statusEl.className = "text-sm px-3 py-1 rounded-full bg-green-600 text-green-100";
+                
+                allSongs = data || [];
+                renderSongs(allSongs);
+                setupRealtime();
+            } catch (err) {
+                console.error("Connection error:", err);
+                statusEl.textContent = "Connection Failed 🔴";
+                statusEl.className = "text-sm px-3 py-1 rounded-full bg-red-600 text-red-100";
+            }
+        }
+
+        function renderSongs(songs) {
+            currentDisplayedSongs = songs;
+            songCountEl.textContent = `${songs.length} songs`;
+            
+            if (songs.length === 0) {
+                songListEl.innerHTML = `<p class="text-slate-500 text-center py-6 text-sm">No songs found.</p>`;
+                return;
+            }
+
+            if (selectedLibraryIndex >= songs.length) {
+                selectedLibraryIndex = Math.max(0, songs.length - 1);
+            }
+
+            songListEl.innerHTML = songs.map((song, index) => `
+                <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border border-slate-800 p-2 rounded-lg transition text-xs ${index === selectedLibraryIndex ? 'tv-focused' : 'hover:border-purple-500'}">
+                    <div class="overflow-hidden pr-2">
+                        <h3 class="font-medium text-slate-200 truncate">${escapeHtml(song.title)}</h3>
+                        <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist)}</p>
+                    </div>
+                    <div class="flex gap-1 shrink-0">
+                        <button onclick="addToQueue(${index})" title="Add to Queue" class="bg-purple-600 hover:bg-purple-700 px-2 py-0.5 rounded font-medium">Queue</button>
+                        <button onclick="playSongImmediate(${index})" title="Play Now" class="bg-pink-600 hover:bg-pink-700 px-2 py-0.5 rounded font-medium">Play</button>
+                        <button onclick="deleteSong('${song.id}')" title="Delete" class="bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white px-1.5 py-0.5 rounded transition">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.addToQueue = function(index) {
+            const song = currentDisplayedSongs[index];
+            if (!song) return;
+            songQueue.push(song);
+            renderQueue();
+            
+            if (!document.querySelector('audio, video')) {
+                playNextInQueue();
+            }
+        };
+
+        window.playSongImmediate = function(index) {
+            const song = currentDisplayedSongs[index];
+            if (!song) return;
+            playMedia(song);
+        };
+
+        function playMedia(song) {
+            const url = song.file_path || song.file_url || song.url || song.media_url;
+
+            if (!url || url.endsWith('.mid') || url.endsWith('.midi')) {
+                alert(`Cannot play "${song.title}". Browsers do not support MIDI (.mid) files. Please upload an MP3 or MP4 version!`);
+                playNextInQueue();
+                return;
+            }
+
+            const title = escapeHtml(song.title);
+            const artist = escapeHtml(song.artist);
+            const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
+
+            if (isVideo) {
+                playerContainer.innerHTML = `
+                    <div class="w-full flex justify-between items-center mb-2">
+                        <span class="text-xs text-pink-400 font-semibold truncate">NOW SINGING: ${title} - ${artist}</span>
+                    </div>
+                    <video controls autoplay class="w-full h-full rounded-lg bg-black object-contain flex-grow" onerror="handleMediaError()" onended="playNextInQueue()">
+                        <source src="${url}">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+            } else {
+                playerContainer.innerHTML = `
+                    <div class="w-full flex justify-between items-center mb-4">
+                        <span class="text-xs text-purple-400 font-semibold truncate">NOW SINGING: ${title} - ${artist}</span>
+                    </div>
+                    <div class="flex flex-col items-center justify-center flex-grow space-y-4 w-full">
+                        <div class="w-24 h-24 rounded-full bg-purple-900/40 border border-purple-500/50 flex items-center justify-center text-4xl animate-pulse">
+                            🎤
+                        </div>
+                        <audio controls autoplay class="w-full" onerror="handleMediaError()" onended="playNextInQueue()">
+                            <source src="${url}">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                `;
+            }
+        }
+
+        window.handleMediaError = function() {
+            alert("Error loading media file. Please check if the file URL is accessible or if it's a valid audio/video format.");
+            playNextInQueue();
+        };
+
+        window.playNextInQueue = function() {
+            if (songQueue.length > 0) {
+                const nextSong = songQueue.shift();
+                renderQueue();
+                playMedia(nextSong);
+            } else {
+                playerContainer.innerHTML = `
+                    <div class="space-y-2">
+                        <span class="text-4xl">🎵</span>
+                        <p class="text-sm">Queue finished!<br>Pick more songs to keep singing.</p>
+                    </div>
+                `;
+            }
+        };
+
+        window.removeFromQueue = function(queueIndex) {
+            songQueue.splice(queueIndex, 1);
+            renderQueue();
+        };
+
+        window.clearQueue = function() {
+            songQueue = [];
+            renderQueue();
+        };
+
+        function renderQueue() {
+            queueCountEl.textContent = `${songQueue.length} queued`;
+            if (songQueue.length === 0) {
+                queueListEl.innerHTML = `<p class="text-slate-500 text-center py-12 text-sm">Queue is empty.<br>Add songs to sing next!</p>`;
+                return;
+            }
+
+            queueListEl.innerHTML = songQueue.map((song, qIndex) => `
+                <div class="flex justify-between items-center bg-slate-950 border border-slate-800 p-2 rounded-lg text-xs">
+                    <div class="overflow-hidden pr-2">
+                        <span class="text-[10px] text-purple-400 font-bold mr-1">#${qIndex + 1}</span>
+                        <span class="font-medium text-slate-200 truncate">${escapeHtml(song.title)}</span>
+                        <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist)}</p>
+                    </div>
+                    <button onclick="removeFromQueue(${qIndex})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function toggleFullScreen() {
+            const monitorCard = document.getElementById("monitor-card");
+            if (!document.fullscreenElement) {
+                if (monitorCard.requestFullscreen) {
+                    monitorCard.requestFullscreen();
+                } else if (monitorCard.webkitRequestFullscreen) {
+                    monitorCard.webkitRequestFullscreen();
+                }
+                document.getElementById("fullscreen-btn").textContent = "✕ Exit Fullscreen";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                document.getElementById("fullscreen-btn").textContent = "⛶ Fullscreen";
+            }
+        }
+
+        document.addEventListener("fullscreenchange", () => {
+            if (!document.fullscreenElement) {
+                document.getElementById("fullscreen-btn").textContent = "⛶ Fullscreen";
+            }
+        });
+
+        // Android TV Remote Control Support
+        document.addEventListener("keydown", (e) => {
+            if (currentDisplayedSongs.length === 0) return;
+
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                if (selectedLibraryIndex < currentDisplayedSongs.length - 1) {
+                    selectedLibraryIndex++;
+                    renderSongs(currentDisplayedSongs);
+                    scrollSelectedIntoView();
+                }
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                if (selectedLibraryIndex > 0) {
+                    selectedLibraryIndex--;
+                    renderSongs(currentDisplayedSongs);
+                    scrollSelectedIntoView();
+                }
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                if (document.activeElement !== searchInput) {
+                    playSongImmediate(selectedLibraryIndex);
+                }
+            } else if (e.key === "Escape" || e.key === "Backspace") {
+                if (document.fullscreenElement) {
+                    e.preventDefault();
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        function scrollSelectedIntoView() {
+            const el = document.getElementById(`song-item-${selectedLibraryIndex}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        uploadForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const title = document.getElementById("song-title").value;
+            const artist = document.getElementById("song-artist").value;
+            const fileInput = document.getElementById("song-file");
+            const file = fileInput.files[0];
+
+            if (!file) return alert("Please select a file!");
+
+            const uploadBtn = document.getElementById("upload-btn");
+            uploadBtn.textContent = "Uploading...";
+            uploadBtn.disabled = true;
+
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+                
+                const { error: uploadError } = await supabaseClient.storage
+                    .from("karaoke_songs")
+                    .upload(fileName, file);
+
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = supabaseClient.storage
+                    .from("karaoke_songs")
+                    .getPublicUrl(fileName);
+
+                const { error: dbError } = await supabaseClient.from("songs").insert([
+                    { title, artist, file_path: publicUrlData.publicUrl }
+                ]);
+
+                if (dbError) throw dbError;
+
+                uploadForm.reset();
+            } catch (err) {
+                console.error("Upload error:", err);
+                alert("Error uploading song: " + err.message);
+            } finally {
+                uploadBtn.textContent = "Upload & Sync";
+                uploadBtn.disabled = false;
+            }
+        });
+
+        window.deleteSong = async function(id) {
+            if (!confirm("Are you sure you want to delete this song?")) return;
+            try {
+                const { error } = await supabaseClient.from("songs").delete().eq("id", id);
+                if (error) throw error;
+            } catch (err) {
+                console.error("Delete error:", err);
+                alert("Error deleting song: " + err.message);
+            }
+        };
+
+        function setupRealtime() {
+            supabaseClient
+                .channel("public:songs")
+                .on("postgres_changes", { event: "*", schema: "public", table: "songs" }, payload => {
+                    if (payload.eventType === "INSERT") {
+                        allSongs.unshift(payload.new);
+                    } else if (payload.eventType === "DELETE") {
+                        allSongs = allSongs.filter(s => s.id !== payload.old.id);
+                    }
+                    const query = searchInput.value.toLowerCase();
+                    const filtered = allSongs.filter(song => 
+                        song.title.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query)
+                    );
+                    renderSongs(filtered);
+                })
+                .subscribe();
+        }
+
+        searchInput.addEventListener("input", (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allSongs.filter(song => 
+                song.title.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query)
+            );
+            selectedLibraryIndex = 0;
+            renderSongs(filtered);
+        });
+
+        function escapeHtml(str) {
+            return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        initApp();
+    </script>
+</body>
+</html>
