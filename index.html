@@ -19,7 +19,7 @@
         input[type=range] {
             accent-color: #ec4899;
         }
-        /* True TV Fullscreen Expansion */
+        /* True TV Fullscreen Expansion - Fills 100% of Android TV Screen */
         #monitor-card:fullscreen {
             width: 100vw !important;
             height: 100vh !important;
@@ -30,26 +30,32 @@
             flex-direction: column !important;
             justify-content: space-between !important;
             background-color: #000000 !important;
-            padding: 16px !important;
+            padding: 0 !important;
+            margin: 0 !important;
             box-sizing: border-box !important;
-            pointer-events: none !important;
         }
         #monitor-card:fullscreen > div:first-child > div:first-child,
-        #monitor-card:fullscreen .grid {
+        #monitor-card:fullscreen .grid,
+        #monitor-card:fullscreen #next-song-banner,
+        #monitor-card:fullscreen .marquee-container {
             display: none !important;
         }
         #monitor-card:fullscreen #player-container {
             flex-grow: 1 !important;
-            width: 100% !important;
-            height: calc(100vh - 100px) !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: none !important;
             background-color: #000 !important;
             border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
         }
         #monitor-card:fullscreen video,
         #monitor-card:fullscreen audio {
-            width: 100% !important;
-            height: 100% !important;
-            max-height: calc(100vh - 110px) !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: none !important;
             object-fit: contain !important;
         }
 
@@ -121,7 +127,7 @@
                     </div>
                 </div>
 
-                <!-- Coming Song 30-Second Repeating Banner (Placed Safely Below Video Player) -->
+                <!-- Coming Song 30-Second Repeating Banner -->
                 <div id="next-song-banner" class="hidden my-2 bg-gradient-to-r from-pink-900/90 via-purple-900/90 to-slate-900 border border-pink-500/60 rounded-lg py-1.5 px-3 text-center shadow-lg animate-pulse">
                     <span class="text-[9px] uppercase font-bold text-pink-300 tracking-widest block">🌟 COMING SONG (NEXT UP) 🌟</span>
                     <span id="next-banner-text" class="text-xs font-bold text-white truncate block">--</span>
