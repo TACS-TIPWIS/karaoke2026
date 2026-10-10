@@ -98,9 +98,9 @@
                     🎵 NOW PLAYING: <span id="badge-title-text" class="text-slate-200">--</span>
                 </div>
 
-                <!-- Fullscreen Top Display for Next Song with Code Number -->
+                <!-- Fullscreen Top Display for Coming Song with Code Number -->
                 <div id="fullscreen-next-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-purple-950/90 border border-pink-500/80 px-6 py-2 rounded-xl text-center shadow-2xl backdrop-blur">
-                    <span class="text-[10px] uppercase font-bold text-pink-300 tracking-widest block">⭐ NEXT SONG IN QUEUE ⭐</span>
+                    <span class="text-[10px] uppercase font-bold text-pink-300 tracking-widest block">⭐ COMING SONG (NEXT IN QUEUE) ⭐</span>
                     <span id="fullscreen-next-text" class="text-sm font-black text-white tracking-wide block">--</span>
                 </div>
 
@@ -122,9 +122,9 @@
                     </div>
                 </div>
 
-                <!-- Next Song 30-Second Announcement Banner (Normal Mode) -->
+                <!-- Coming Song 30-Second Repeating Banner (Normal Mode) -->
                 <div id="next-song-banner" class="hidden my-2 bg-gradient-to-r from-pink-900/90 via-purple-900/90 to-slate-900 border border-pink-500/60 rounded-lg py-2 px-3 text-center shadow-lg animate-pulse">
-                    <span class="text-[10px] uppercase font-bold text-pink-300 tracking-widest block">🌟 UPCOMING NEXT (30s Preview) 🌟</span>
+                    <span class="text-[10px] uppercase font-bold text-pink-300 tracking-widest block">🌟 COMING SONG (NEXT UP) 🌟</span>
                     <span id="next-banner-text" class="text-xs font-bold text-white truncate block">--</span>
                 </div>
 
@@ -294,7 +294,7 @@
         let historyQueue = [];
         let currentActiveSong = null;
         let isAdmin = false;
-        let nextSongTimer = null;
+        let comingSongInterval = null;
 
         const ADMIN_PASSCODE = "gege@635185";
         const BASE_SONG_CODE = 1001;
@@ -476,8 +476,6 @@
             renderQueue();
             if (!currentActiveSong && !document.querySelector('audio, video')) {
                 playNextInQueue();
-            } else {
-                updateFullscreenNextSongDisplay();
             }
         };
 
@@ -489,49 +487,38 @@
             playNextInQueue();
         };
 
-        function updateFullscreenNextSongDisplay() {
-            if (songQueue.length > 0) {
-                const nextSong = songQueue[0];
-                const nextSongIndex = allSongs.indexOf(nextSong);
-                const assignedCode = nextSongIndex !== -1 ? BASE_SONG_CODE + nextSongIndex : '----';
-                
-                fullscreenNextText.textContent = `#${assignedCode} - ${nextSong.title} (${nextSong.artist || 'Unknown'})`;
-                fullscreenNextBanner.classList.remove("hidden");
-            } else {
-                fullscreenNextBanner.classList.add("hidden");
-            }
-        }
+        // Repeating 30-Second Coming Song Announcement Loop
+        function startComingSongLoop() {
+            if (comingSongInterval) clearInterval(comingSongInterval);
 
-        function triggerNextSongAnnouncement() {
-            if (nextSongTimer) clearTimeout(nextSongTimer);
+            comingSongInterval = setInterval(() => {
+                if (songQueue.length > 0 && currentActiveSong) {
+                    const nextSong = songQueue[0];
+                    const nextSongIndex = allSongs.indexOf(nextSong);
+                    const assignedCode = nextSongIndex !== -1 ? BASE_SONG_CODE + nextSongIndex : '----';
 
-            if (songQueue.length > 0) {
-                const nextSong = songQueue[0];
-                const nextSongIndex = allSongs.indexOf(nextSong);
-                const assignedCode = nextSongIndex !== -1 ? BASE_SONG_CODE + nextSongIndex : '----';
+                    const displayText = `#${assignedCode} - ${nextSong.title} (${nextSong.artist || 'Unknown'})`;
 
-                nextBannerText.textContent = `#${assignedCode} - ${nextSong.title} - ${nextSong.artist || 'Unknown'}`;
-                nextSongBanner.classList.remove("hidden");
-                upperLeftBadge.classList.add("hidden");
-                updateFullscreenNextSongDisplay();
+                    // Update banners
+                    nextBannerText.textContent = displayText;
+                    fullscreenNextText.textContent = displayText;
 
-                // 30-Second interval timer for the next song pop-up preview
-                nextSongTimer = setTimeout(() => {
-                    nextSongBanner.classList.add("hidden");
-                    fullscreenNextBanner.classList.add("hidden");
-                    if (currentActiveSong) {
-                        badgeTitleText.textContent = `${currentActiveSong.title} - ${currentActiveSong.artist || 'Unknown'}`;
-                        upperLeftBadge.classList.remove("hidden");
-                    }
-                }, 30000);
-            } else {
-                nextSongBanner.classList.add("hidden");
-                fullscreenNextBanner.classList.add("hidden");
-                if (currentActiveSong) {
-                    badgeTitleText.textContent = `${currentActiveSong.title} - ${currentActiveSong.artist || 'Unknown'}`;
-                    upperLeftBadge.classList.remove("hidden");
+                    // Show banners
+                    nextSongBanner.classList.remove("hidden");
+                    fullscreenNextBanner.classList.remove("hidden");
+                    upperLeftBadge.classList.add("hidden");
+
+                    // Hide the coming song banner after 10 seconds, revert to normal playing badge
+                    setTimeout(() => {
+                        nextSongBanner.classList.add("hidden");
+                        fullscreenNextBanner.classList.add("hidden");
+                        if (currentActiveSong) {
+                            badgeTitleText.textContent = `${currentActiveSong.title} -${currentActiveSong.artist || 'Unknown'}`;
+                            upperLeftBadge.classList.remove("hidden");
+                        }
+                    }, 10000);
                 }
-            }
+            }, 30000); // Triggers every 30 seconds
         }
 
         function playMedia(song) {
@@ -547,7 +534,12 @@
             }
             currentActiveSong = song;
 
-            triggerNextSongAnnouncement();
+            // Show current song badge immediately
+            badgeTitleText.textContent = `${song.title} -${song.artist || 'Unknown'}`;
+            upperLeftBadge.classList.remove("hidden");
+
+            // Start the repeating 30s coming song notification loop
+            startComingSongLoop();
 
             const title = escapeHtml(song.title);
             const artist = escapeHtml(song.artist || 'Unknown Artist');
@@ -625,6 +617,7 @@
                 playMedia(nextSong);
             } else {
                 currentActiveSong = null;
+                if (comingSongInterval) clearInterval(comingSongInterval);
                 nextSongBanner.classList.add("hidden");
                 upperLeftBadge.classList.add("hidden");
                 fullscreenNextBanner.classList.add("hidden");
@@ -650,27 +643,26 @@
             const player = document.getElementById("media-player");
             if (player) { player.pause(); player.currentTime = 0; }
             currentActiveSong = null;
+            if (comingSongInterval) clearInterval(comingSongInterval);
             nextSongBanner.classList.add("hidden");
             upperLeftBadge.classList.add("hidden");
             fullscreenNextBanner.classList.add("hidden");
             playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Stopped.</p></div>`;
         };
 
-        window.removeFromQueue = function(qIndex) { 
-            songQueue.splice(qIndex, 1); 
-            renderQueue(); 
-            updateFullscreenNextSongDisplay();
-        };
+        window.removeFromQueue = function(qIndex) { songQueue.splice(qIndex, 1); renderQueue(); };
         window.clearQueue = function() { 
             songQueue = []; 
             renderQueue(); 
+            if (comingSongInterval) clearInterval(comingSongInterval);
             fullscreenNextBanner.classList.add("hidden");
+            nextSongBanner.classList.add("hidden");
         };
 
         function renderQueue() {
             queueCountEl.textContent = `${songQueue.length} queued`;
             if (songQueue.length === 0) {
-                queueListEl.innerHTML = `<p class="text-slate-500 text-center py-6 text-xs">Queue is empty.</p>`;
+                queueListEl.innerHTML = `<p class="text-slate-500 text-center py-6 text-xs">Queue is empty.</p>";
                 return;
             }
             queueListEl.innerHTML = songQueue.map((song, qIndex) => `
