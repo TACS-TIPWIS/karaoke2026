@@ -87,78 +87,11 @@
         </div>
     </header>
 
-    <!-- Main Layout (12-Column Grid: 3 Left | 6 Center | 3 Right) -->
+    <!-- Main Layout (12-Column Grid with Mobile Ordering) -->
     <main class="flex-grow container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- LEFT COLUMN: Song Library & Remote Keypad Panel (3 cols) -->
-        <div class="lg:col-span-3 space-y-4 flex flex-col">
-            <!-- Android TV Remote Code Entry & Keypad Box -->
-            <div class="space-y-2 bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-lg">
-                <label class="block text-xs font-semibold text-pink-400 uppercase tracking-wider">Karaoke Code Entry (1001+)</label>
-                
-                <div class="flex gap-2">
-                    <input type="text" id="song-number-input" placeholder="0000" readonly
-                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-center text-xl font-black tracking-widest text-pink-300 focus:outline-none focus:border-pink-500">
-                    <button onclick="clearCodeInput()" class="bg-red-600/85 hover:bg-red-600 text-white font-bold px-3 py-2 rounded-lg text-xs transition">
-                        CLR
-                    </button>
-                </div>
-
-                <!-- On-Screen Numeric Keypad (Android TV / Remote style) -->
-                <div class="grid grid-cols-3 gap-1.5 pt-1">
-                    <button onclick="pressKey('1')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">1</button>
-                    <button onclick="pressKey('2')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">2</button>
-                    <button onclick="pressKey('3')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">3</button>
-                    <button onclick="pressKey('4')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">4</button>
-                    <button onclick="pressKey('5')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">5</button>
-                    <button onclick="pressKey('6')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">6</button>
-                    <button onclick="pressKey('7')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">7</button>
-                    <button onclick="pressKey('8')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">8</button>
-                    <button onclick="pressKey('9')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">9</button>
-                    <button onclick="backspaceKey()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded text-xs transition">⌫</button>
-                    <button onclick="pressKey('0')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">0</button>
-                    <button onclick="queueSongByCode()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 rounded text-xs transition">OK</button>
-                </div>
-
-                <!-- Live Song Preview Badge -->
-                <div id="code-preview" class="text-[11px] text-slate-400 bg-slate-950 p-2 rounded border border-slate-800 min-h-[36px] flex items-center mt-1">
-                    Use remote Arrows to browse or numbers to select...
-                </div>
-
-                <!-- Search Library Filter -->
-                <input type="text" id="search-input" placeholder="Or search by title/artist..." 
-                    class="w-full mt-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:border-purple-500 text-xs text-slate-200">
-            </div>
-
-            <!-- Song Library -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col">
-                <h2 class="text-lg font-semibold mb-3 text-purple-300 flex items-center justify-between">
-                    <span>📚 Library (Remote Arrows)</span>
-                    <span id="song-count" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">0 songs</span>
-                </h2>
-                <div id="song-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                    <p class="text-slate-500 text-center py-6 text-sm">Loading songs...</p>
-                </div>
-            </div>
-
-            <!-- Bulk Multi-File Upload Panel (HIDDEN BY DEFAULT UNLESS ADMIN) -->
-            <div id="admin-upload-panel" class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3 hidden">
-                <h2 class="text-md font-semibold text-purple-300">📁 Admin Bulk Upload</h2>
-                <p class="text-[11px] text-slate-400 leading-tight">Select multiple audio/video files. Titles and artists will be extracted automatically.</p>
-                <form id="upload-form" class="space-y-3">
-                    <div>
-                        <input type="file" id="song-files" accept="audio/*,video/*,.mp3,.mp4,.wav,.m4a,.flac,.mid,.midi" multiple required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer">
-                    </div>
-                    <button type="submit" id="upload-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-semibold py-2 rounded hover:opacity-90 transition">
-                        Upload & Sync Batch
-                    </button>
-                </form>
-                <div id="upload-progress" class="text-xs text-purple-300 text-center font-medium"></div>
-            </div>
-        </div>
-
-        <!-- CENTER COLUMN: Main Stage Monitor & Audio Adjusters (6 cols) -->
-        <div class="lg:col-span-6 space-y-6 flex flex-col">
+        <!-- CENTER COLUMN: Main Stage Monitor & Audio Adjusters (Mobile: Order 1 - Top) -->
+        <div class="lg:col-span-6 space-y-6 flex flex-col order-1 lg:order-2">
             <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-center mb-3">
@@ -232,8 +165,8 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: Song Queue (3 cols) -->
-        <div class="lg:col-span-3 space-y-6 flex flex-col">
+        <!-- RIGHT COLUMN: Song Queue (Mobile: Order 2) -->
+        <div class="lg:col-span-3 space-y-6 flex flex-col order-2 lg:order-3">
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col">
                 <h2 class="text-lg font-semibold mb-3 text-purple-300 flex items-center justify-between">
                     <span>⭐ Queue</span>
@@ -266,6 +199,73 @@
                 <button onclick="clearQueue()" class="mt-2 w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 py-1.5 rounded transition">
                     Clear Queue
                 </button>
+            </div>
+        </div>
+
+        <!-- LEFT COLUMN: Song Library & Remote Keypad Panel (Mobile: Order 3 & 4) -->
+        <div class="lg:col-span-3 space-y-4 flex flex-col order-3 lg:order-1">
+            <!-- Android TV Remote Code Entry & Keypad Box -->
+            <div class="space-y-2 bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-lg">
+                <label class="block text-xs font-semibold text-pink-400 uppercase tracking-wider">Karaoke Code Entry (1001+)</label>
+                
+                <div class="flex gap-2">
+                    <input type="text" id="song-number-input" placeholder="0000" readonly
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-center text-xl font-black tracking-widest text-pink-300 focus:outline-none focus:border-pink-500">
+                    <button onclick="clearCodeInput()" class="bg-red-600/85 hover:bg-red-600 text-white font-bold px-3 py-2 rounded-lg text-xs transition">
+                        CLR
+                    </button>
+                </div>
+
+                <!-- On-Screen Numeric Keypad (Android TV / Remote style) -->
+                <div class="grid grid-cols-3 gap-1.5 pt-1">
+                    <button onclick="pressKey('1')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">1</button>
+                    <button onclick="pressKey('2')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">2</button>
+                    <button onclick="pressKey('3')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">3</button>
+                    <button onclick="pressKey('4')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">4</button>
+                    <button onclick="pressKey('5')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">5</button>
+                    <button onclick="pressKey('6')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">6</button>
+                    <button onclick="pressKey('7')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">7</button>
+                    <button onclick="pressKey('8')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">8</button>
+                    <button onclick="pressKey('9')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">9</button>
+                    <button onclick="backspaceKey()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded text-xs transition">⌫</button>
+                    <button onclick="pressKey('0')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">0</button>
+                    <button onclick="queueSongByCode()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 rounded text-xs transition">OK</button>
+                </div>
+
+                <!-- Live Song Preview Badge -->
+                <div id="code-preview" class="text-[11px] text-slate-400 bg-slate-950 p-2 rounded border border-slate-800 min-h-[36px] flex items-center mt-1">
+                    Use remote Arrows to browse or numbers to select...
+                </div>
+
+                <!-- Search Library Filter -->
+                <input type="text" id="search-input" placeholder="Or search by title/artist..." 
+                    class="w-full mt-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:border-purple-500 text-xs text-slate-200">
+            </div>
+
+            <!-- Song Library -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col">
+                <h2 class="text-lg font-semibold mb-3 text-purple-300 flex items-center justify-between">
+                    <span>📚 Library (Remote Arrows)</span>
+                    <span id="song-count" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">0 songs</span>
+                </h2>
+                <div id="song-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                    <p class="text-slate-500 text-center py-6 text-sm">Loading songs...</p>
+                </div>
+            </div>
+
+            <!-- Bulk Multi-File Upload Panel (HIDDEN BY DEFAULT UNLESS ADMIN) -->
+            <div id="admin-upload-panel" class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3 hidden">
+                <h2 class="text-md font-semibold text-purple-300">📁 Admin Bulk Upload</h2>
+                <p class="text-[11px] text-slate-400 leading-tight">Select multiple audio/video files. Titles and artists will be extracted automatically.</p>
+                <form id="upload-form" class="space-y-3">
+                    <div>
+                        <input type="file" id="song-files" accept="audio/*,video/*,.mp3,.mp4,.wav,.m4a,.flac,.mid,.midi" multiple required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer">
+                    </div>
+                    <button type="submit" id="upload-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-semibold py-2 rounded hover:opacity-90 transition">
+                        Upload & Sync Batch
+                    </button>
+                </form>
+                <div id="upload-progress" class="text-xs text-purple-300 text-center font-medium"></div>
             </div>
         </div>
 
