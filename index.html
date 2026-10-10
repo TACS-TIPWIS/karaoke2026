@@ -682,7 +682,40 @@
             }
         }
 
+        // Android TV Remote Control & Keyboard Key Handlers
         document.addEventListener("keydown", (e) => {
+            // Media Control Remote Buttons
+            switch (e.key) {
+                case "MediaPlayPause":
+                case " ":
+                    if (document.activeElement !== searchInput) {
+                        e.preventDefault();
+                        togglePlayPause();
+                        return;
+                    }
+                    break;
+                case "MediaStop":
+                    e.preventDefault();
+                    stopMedia();
+                    return;
+                case "MediaTrackNext":
+                case "F":
+                    if (document.activeElement !== searchInput) {
+                        e.preventDefault();
+                        playNextInQueue();
+                        return;
+                    }
+                    break;
+                case "MediaTrackPrevious":
+                case "R":
+                    if (document.activeElement !== searchInput) {
+                        e.preventDefault();
+                        playPreviousInQueue();
+                        return;
+                    }
+                    break;
+            }
+
             if (currentDisplayedSongs.length === 0) return;
             if (e.key >= '0' && e.key <= '9' && document.activeElement !== searchInput) {
                 e.preventDefault(); pressKey(e.key);
@@ -698,6 +731,15 @@
                 if (selectedLibraryIndex > 0) { selectedLibraryIndex--; renderSongs(currentDisplayedSongs); scrollSelectedIntoView(); }
             }
         });
+
+        // MediaSession API integration for hardware remote buttons
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('play', () => { togglePlayPause(); });
+            navigator.mediaSession.setActionHandler('pause', () => { togglePlayPause(); });
+            navigator.mediaSession.setActionHandler('stop', () => { stopMedia(); });
+            navigator.mediaSession.setActionHandler('previoustrack', () => { playPreviousInQueue(); });
+            navigator.mediaSession.setActionHandler('nexttrack', () => { playNextInQueue(); });
+        }
 
         function scrollSelectedIntoView() {
             const el = document.getElementById(`song-item-${selectedLibraryIndex}`);
