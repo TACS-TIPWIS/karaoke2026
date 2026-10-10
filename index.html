@@ -11,15 +11,15 @@
     <style>
         .tv-focused {
             border-color: #c084fc !important;
-            background-color: rgba(88, 28, 135, 0.5) !important;
-            box-shadow: 0 0 15px rgba(192, 132, 252, 0.4);
-            transform: scale(1.01);
+            background-color: rgba(88, 28, 135, 0.6) !important;
+            box-shadow: 0 0 20px rgba(192, 132, 252, 0.6);
+            transform: scale(1.02);
             transition: all 0.1s ease-in-out;
         }
         input[type=range] {
             accent-color: #ec4899;
         }
-        /* True TV Fullscreen Expansion */
+        /* True TV Fullscreen Expansion & Disable Mouse Pointer in TV Mode */
         #monitor-card:fullscreen {
             width: 100vw !important;
             height: 100vh !important;
@@ -31,6 +31,7 @@
             background-color: #020617 !important;
             padding: 24px !important;
             box-sizing: border-box !important;
+            pointer-events: none !important; /* Disables mouse clicks/pointer in TV mode */
         }
         #monitor-card:fullscreen #player-container {
             flex-grow: 1 !important;
@@ -76,7 +77,7 @@
                 <div class="flex gap-2">
                     <input type="text" id="song-number-input" placeholder="0000" readonly
                         class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-center text-xl font-black tracking-widest text-pink-300 focus:outline-none focus:border-pink-500">
-                    <button onclick="clearCodeInput()" class="bg-red-600/80 hover:bg-red-600 text-white font-bold px-3 py-2 rounded-lg text-xs transition">
+                    <button onclick="clearCodeInput()" class="bg-red-600/85 hover:bg-red-600 text-white font-bold px-3 py-2 rounded-lg text-xs transition">
                         CLR
                     </button>
                 </div>
@@ -279,10 +280,9 @@
         let currentTempo = 1.0;
         let currentVol = 1.0;
 
-        // Speech Synthesis Helper for reading numbers and status aloud
         function speakText(text) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Stop any ongoing speech
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.rate = 1.1;
                 utterance.pitch = 1.0;
@@ -372,7 +372,6 @@
             current += digit;
             songNumberInput.value = current;
             
-            // Speak the pressed number aloud
             speakText(digit);
             previewSongByCode(current);
         };
