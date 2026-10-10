@@ -279,6 +279,17 @@
         let currentTempo = 1.0;
         let currentVol = 1.0;
 
+        // Speech Synthesis Helper for reading numbers and status aloud
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop any ongoing speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.1;
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
         function toggleAdminMode() {
             if (!isAdmin) {
                 const pwd = prompt("Enter Admin Passcode to unlock Upload & Delete:");
@@ -360,6 +371,9 @@
             if (current.length >= 5) current = "";
             current += digit;
             songNumberInput.value = current;
+            
+            // Speak the pressed number aloud
+            speakText(digit);
             previewSongByCode(current);
         };
 
@@ -367,11 +381,13 @@
             let current = songNumberInput.value;
             current = current.slice(0, -1);
             songNumberInput.value = current;
+            speakText("delete");
             previewSongByCode(current);
         };
 
         window.clearCodeInput = function() {
             songNumberInput.value = "";
+            speakText("cleared");
             codePreviewEl.innerHTML = `<span class="text-slate-500">Keypad cleared. Use arrows or numbers.</span>`;
         };
 
@@ -392,7 +408,6 @@
         };
 
         window.queueSongByCode = function() {
-            // If user typed a number in code input, queue that specific song
             if (songNumberInput.value.trim() !== "") {
                 const code = parseInt(songNumberInput.value);
                 if (!isNaN(code) && code >= BASE_SONG_CODE && code <= BASE_SONG_CODE + allSongs.length - 1) {
@@ -401,17 +416,19 @@
                     renderSongs(allSongs);
                     scrollSelectedIntoView();
                     addToQueue(targetIndex);
+                    
+                    speakText(`Queued code ${code}`);
                     songNumberInput.value = "";
                     codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Successfully queued code #${code}! 🎉</span>`;
                     return;
                 }
             }
             
-            // Otherwise, queue whatever song is currently highlighted by the arrow keys in the library
             if (currentDisplayedSongs.length > 0) {
                 const song = currentDisplayedSongs[selectedLibraryIndex];
                 const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
                 addToQueue(allSongs.indexOf(song));
+                speakText(`Queued ${song.title}`);
                 codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Successfully queued #${assignedCode}: ${escapeHtml(song.title)}! 🎉</span>`;
             }
         };
@@ -655,7 +672,6 @@
         document.addEventListener("keydown", (e) => {
             if (currentDisplayedSongs.length === 0) return;
 
-            // Capture digits 0-9 from TV remote
             if (e.key >= '0' && e.key <= '9') {
                 if (document.activeElement !== searchInput) {
                     e.preventDefault();
@@ -695,7 +711,6 @@
                 return;
             }
 
-            // TV Remote Arrow Down
             if (e.key === "ArrowDown") {
                 e.preventDefault();
                 if (selectedLibraryIndex < currentDisplayedSongs.length - 1) {
@@ -706,9 +721,7 @@
                     const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
                     codePreviewEl.innerHTML = `<span class="text-pink-300 font-semibold truncate">🎵 Selected #${assignedCode}: ${escapeHtml(song.title)}</span>`;
                 }
-            } 
-            // TV Remote Arrow Up
-            else if (e.key === "ArrowUp") {
+            } else if (e.key === "ArrowUp") {
                 e.preventDefault();
                 if (selectedLibraryIndex > 0) {
                     selectedLibraryIndex--;
