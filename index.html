@@ -30,7 +30,7 @@
             flex-direction: column !important;
             justify-content: space-between !important;
             background-color: #000000 !important;
-            padding: 12px !important;
+            padding: 16px !important;
             box-sizing: border-box !important;
             pointer-events: none !important;
         }
@@ -41,7 +41,7 @@
         #monitor-card:fullscreen #player-container {
             flex-grow: 1 !important;
             width: 100% !important;
-            height: calc(100vh - 80px) !important;
+            height: calc(100vh - 100px) !important;
             background-color: #000 !important;
             border: none !important;
         }
@@ -49,7 +49,7 @@
         #monitor-card:fullscreen audio {
             width: 100% !important;
             height: 100% !important;
-            max-height: calc(100vh - 90px) !important;
+            max-height: calc(100vh - 110px) !important;
             object-fit: contain !important;
         }
 
@@ -80,19 +80,30 @@
             <div id="connection-status" class="text-xs px-2.5 py-0.5 rounded-full bg-yellow-600 text-yellow-100">
                 Connecting...
             </div>
-            <!-- Admin Mode Toggle Button -->
             <button onclick="toggleAdminMode()" id="admin-toggle-btn" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 transition">
                 🔒 Admin
             </button>
         </div>
     </header>
 
-    <!-- Main Layout: Mobile optimized stack (Monitor -> Controls -> Queue -> Keypad -> Library) -->
+    <!-- Main Layout -->
     <main class="flex-grow container mx-auto p-3 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4">
         
-        <!-- 1. MAIN STAGE MONITOR (Top on Mobile) -->
+        <!-- 1. MAIN STAGE MONITOR -->
         <div class="lg:col-span-6 space-y-4 flex flex-col order-1 lg:order-2">
-            <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col justify-between">
+            <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col justify-between relative">
+                
+                <!-- Floating Upper-Left Permanent Song Title Badge (Normal Mode) -->
+                <div id="upper-left-badge" class="absolute top-4 left-4 z-10 bg-slate-950/80 backdrop-blur border border-purple-500/40 px-3 py-1.5 rounded-lg text-xs text-pink-300 font-semibold shadow-lg hidden">
+                    🎵 NOW PLAYING: <span id="badge-title-text" class="text-slate-200">--</span>
+                </div>
+
+                <!-- Fullscreen Top Display for Next Song with Code Number -->
+                <div id="fullscreen-next-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-purple-950/90 border border-pink-500/80 px-6 py-2 rounded-xl text-center shadow-2xl backdrop-blur">
+                    <span class="text-[10px] uppercase font-bold text-pink-300 tracking-widest block">⭐ NEXT SONG IN QUEUE ⭐</span>
+                    <span id="fullscreen-next-text" class="text-sm font-black text-white tracking-wide block">--</span>
+                </div>
+
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <h2 class="text-sm font-semibold text-pink-300 flex items-center gap-2">
@@ -111,6 +122,12 @@
                     </div>
                 </div>
 
+                <!-- Next Song 60-Second Announcement Banner (Normal Mode) -->
+                <div id="next-song-banner" class="hidden my-2 bg-gradient-to-r from-pink-900/90 via-purple-900/90 to-slate-900 border border-pink-500/60 rounded-lg py-2 px-3 text-center shadow-lg animate-pulse">
+                    <span class="text-[10px] uppercase font-bold text-pink-300 tracking-widest block">🌟 UPCOMING NEXT (60s Preview) 🌟</span>
+                    <span id="next-banner-text" class="text-xs font-bold text-white truncate block">--</span>
+                </div>
+
                 <!-- Scrolling Marquee Ticker -->
                 <div class="mt-2 bg-gradient-to-r from-purple-950 via-slate-900 to-pink-950 border border-purple-800/40 rounded-lg py-1.5 px-3 shadow-inner marquee-container">
                     <div class="marquee-text text-[11px] font-bold bg-gradient-to-r from-purple-300 via-pink-400 to-amber-300 bg-clip-text text-transparent tracking-wide">
@@ -120,7 +137,6 @@
 
                 <!-- AUDIO CONTROLS PANEL -->
                 <div class="grid grid-cols-3 gap-2 mt-3">
-                    <!-- Key / Pitch Control -->
                     <div class="bg-slate-950 border border-slate-800 p-2 rounded-lg flex flex-col justify-between">
                         <div class="flex justify-between items-center text-[10px] mb-1">
                             <span class="text-slate-400 font-semibold">KEY</span>
@@ -129,7 +145,6 @@
                         <input type="range" id="pitch-slider" min="-6" max="6" step="1" value="0" oninput="updatePitch(this.value)" class="w-full cursor-pointer">
                     </div>
 
-                    <!-- Tempo Control -->
                     <div class="bg-slate-950 border border-slate-800 p-2 rounded-lg flex flex-col justify-between">
                         <div class="flex justify-between items-center text-[10px] mb-1">
                             <span class="text-slate-400 font-semibold">TEMPO</span>
@@ -138,7 +153,6 @@
                         <input type="range" id="tempo-slider" min="50" max="150" step="5" value="100" oninput="updateTempo(this.value)" class="w-full cursor-pointer">
                     </div>
 
-                    <!-- Music Volume Control -->
                     <div class="bg-slate-950 border border-slate-800 p-2 rounded-lg flex flex-col justify-between">
                         <div class="flex justify-between items-center text-[10px] mb-1">
                             <span class="text-slate-400 font-semibold">VOL</span>
@@ -150,7 +164,7 @@
             </div>
         </div>
 
-        <!-- 2. SONG QUEUE (Mobile: Order 2) -->
+        <!-- 2. SONG QUEUE -->
         <div class="lg:col-span-3 space-y-4 flex flex-col order-2 lg:order-3">
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col">
                 <h2 class="text-sm font-semibold mb-2 text-purple-300 flex items-center justify-between">
@@ -161,7 +175,6 @@
                     <p class="text-slate-500 text-center py-6 text-xs">Queue is empty.</p>
                 </div>
 
-                <!-- Playback Control Buttons -->
                 <div class="mt-2 pt-2 border-t border-slate-800 space-y-1.5">
                     <div class="grid grid-cols-2 gap-1.5">
                         <button onclick="togglePlayPause()" class="bg-purple-600 hover:bg-purple-700 text-[11px] font-semibold py-1 rounded transition text-white">
@@ -183,17 +196,14 @@
             </div>
         </div>
 
-        <!-- 3. ARCADE NUMERIC KEYPAD & LIBRARY (Mobile: Order 3 - Pinned at bottom portion) -->
+        <!-- 3. ARCADE KEYPAD & LIBRARY -->
         <div class="lg:col-span-3 space-y-4 flex flex-col order-3 lg:order-1">
-            
-            <!-- Arcade Keypad Box matching physical machine style -->
             <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-xl space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-pink-400 tracking-wider">CODE ENTRY (1001+)</span>
                     <div id="code-preview" class="text-[10px] text-slate-400 truncate max-w-[160px]">Ready</div>
                 </div>
 
-                <!-- Digital Code Readout Display -->
                 <div class="flex gap-2">
                     <input type="text" id="song-number-input" placeholder="0000" readonly
                         class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-center text-xl font-black tracking-widest text-pink-300 focus:outline-none">
@@ -202,7 +212,6 @@
                     </button>
                 </div>
 
-                <!-- Arcade Numeric Grid (1-9, 0, RES) -->
                 <div class="grid grid-cols-4 gap-1.5">
                     <button onclick="pressKey('1')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">1</button>
                     <button onclick="pressKey('2')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">2</button>
@@ -225,12 +234,10 @@
                     <button onclick="queueSongByCode()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded text-xs transition">OK</button>
                 </div>
 
-                <!-- Search Library Filter -->
                 <input type="text" id="search-input" placeholder="Or search by title/artist..." 
                     class="w-full mt-1 bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 focus:outline-none focus:border-purple-500 text-xs text-slate-200">
             </div>
 
-            <!-- Song Library -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col order-4">
                 <h2 class="text-sm font-semibold mb-2 text-purple-300 flex items-center justify-between">
                     <span>📚 Library</span>
@@ -241,7 +248,6 @@
                 </div>
             </div>
 
-            <!-- Admin Upload Panel (Hidden unless unlocked) -->
             <div id="admin-upload-panel" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg space-y-2 hidden">
                 <h2 class="text-xs font-semibold text-purple-300">📁 Admin Bulk Upload</h2>
                 <form id="upload-form" class="space-y-2">
@@ -274,6 +280,12 @@
         const uploadProgress = document.getElementById("upload-progress");
         const adminUploadPanel = document.getElementById("admin-upload-panel");
         const adminToggleBtn = document.getElementById("admin-toggle-btn");
+        const nextSongBanner = document.getElementById("next-song-banner");
+        const nextBannerText = document.getElementById("next-banner-text");
+        const upperLeftBadge = document.getElementById("upper-left-badge");
+        const badgeTitleText = document.getElementById("badge-title-text");
+        const fullscreenNextBanner = document.getElementById("fullscreen-next-banner");
+        const fullscreenNextText = document.getElementById("fullscreen-next-text");
 
         let allSongs = [];
         let currentDisplayedSongs = [];
@@ -282,6 +294,7 @@
         let historyQueue = [];
         let currentActiveSong = null;
         let isAdmin = false;
+        let nextSongTimer = null;
 
         const ADMIN_PASSCODE = "gege@635185";
         const BASE_SONG_CODE = 1001;
@@ -463,6 +476,8 @@
             renderQueue();
             if (!currentActiveSong && !document.querySelector('audio, video')) {
                 playNextInQueue();
+            } else {
+                updateFullscreenNextSongDisplay();
             }
         };
 
@@ -473,6 +488,50 @@
             renderQueue();
             playNextInQueue();
         };
+
+        function updateFullscreenNextSongDisplay() {
+            if (songQueue.length > 0) {
+                const nextSong = songQueue[0];
+                const nextSongIndex = allSongs.indexOf(nextSong);
+                const assignedCode = nextSongIndex !== -1 ? BASE_SONG_CODE + nextSongIndex : '----';
+                
+                fullscreenNextText.textContent = `#${assignedCode} - ${nextSong.title} (${nextSong.artist || 'Unknown'})`;
+                fullscreenNextBanner.classList.remove("hidden");
+            } else {
+                fullscreenNextBanner.classList.add("hidden");
+            }
+        }
+
+        function triggerNextSongAnnouncement() {
+            if (nextSongTimer) clearTimeout(nextSongTimer);
+
+            if (songQueue.length > 0) {
+                const nextSong = songQueue[0];
+                const nextSongIndex = allSongs.indexOf(nextSong);
+                const assignedCode = nextSongIndex !== -1 ? BASE_SONG_CODE + nextSongIndex : '----';
+
+                nextBannerText.textContent = `#${assignedCode} - ${nextSong.title} - ${nextSong.artist || 'Unknown'}`;
+                nextSongBanner.classList.remove("hidden");
+                upperLeftBadge.classList.add("hidden");
+                updateFullscreenNextSongDisplay();
+
+                nextSongTimer = setTimeout(() => {
+                    nextSongBanner.classList.add("hidden");
+                    fullscreenNextBanner.classList.add("hidden");
+                    if (currentActiveSong) {
+                        badgeTitleText.textContent = `${currentActiveSong.title} - ${currentActiveSong.artist || 'Unknown'}`;
+                        upperLeftBadge.classList.remove("hidden");
+                    }
+                }, 60000);
+            } else {
+                nextSongBanner.classList.add("hidden");
+                fullscreenNextBanner.classList.add("hidden");
+                if (currentActiveSong) {
+                    badgeTitleText.textContent = `${currentActiveSong.title} - ${currentActiveSong.artist || 'Unknown'}`;
+                    upperLeftBadge.classList.remove("hidden");
+                }
+            }
+        }
 
         function playMedia(song) {
             const url = song.file_path || song.file_url || song.url || song.media_url;
@@ -487,24 +546,20 @@
             }
             currentActiveSong = song;
 
+            triggerNextSongAnnouncement();
+
             const title = escapeHtml(song.title);
             const artist = escapeHtml(song.artist || 'Unknown Artist');
             const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
 
             if (isVideo) {
                 playerContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center mb-1">
-                        <span class="text-[11px] text-pink-400 font-semibold truncate">NOW: ${title} - ${artist}</span>
-                    </div>
-                    <video id="media-player" controls autoplay crossorigin="anonymous" class="w-full max-h-[220px] rounded bg-black object-contain" onerror="handleMediaError()" onended="playNextInQueue()">
+                    <video id="media-player" controls autoplay crossorigin="anonymous" class="w-full h-full max-h-[220px] rounded bg-black object-contain" onerror="handleMediaError()" onended="playNextInQueue()">
                         <source src="${url}">
                     </video>
                 `;
             } else {
                 playerContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center mb-1">
-                        <span class="text-[11px] text-purple-400 font-semibold truncate">NOW: ${title} - ${artist}</span>
-                    </div>
                     <div class="flex flex-col items-center justify-center space-y-2 py-2 w-full">
                         <div class="w-12 h-12 rounded-full bg-purple-900/40 border border-purple-500/50 flex items-center justify-center text-2xl animate-pulse">🎤</div>
                         <audio id="media-player" controls autoplay crossorigin="anonymous" class="w-full" onerror="handleMediaError()" onended="playNextInQueue()">
@@ -569,6 +624,9 @@
                 playMedia(nextSong);
             } else {
                 currentActiveSong = null;
+                nextSongBanner.classList.add("hidden");
+                upperLeftBadge.classList.add("hidden");
+                fullscreenNextBanner.classList.add("hidden");
                 playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Queue finished!</p></div>`;
             }
         };
@@ -591,11 +649,22 @@
             const player = document.getElementById("media-player");
             if (player) { player.pause(); player.currentTime = 0; }
             currentActiveSong = null;
+            nextSongBanner.classList.add("hidden");
+            upperLeftBadge.classList.add("hidden");
+            fullscreenNextBanner.classList.add("hidden");
             playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Stopped.</p></div>`;
         };
 
-        window.removeFromQueue = function(qIndex) { songQueue.splice(qIndex, 1); renderQueue(); };
-        window.clearQueue = function() { songQueue = []; renderQueue(); };
+        window.removeFromQueue = function(qIndex) { 
+            songQueue.splice(qIndex, 1); 
+            renderQueue(); 
+            updateFullscreenNextSongDisplay();
+        };
+        window.clearQueue = function() { 
+            songQueue = []; 
+            renderQueue(); 
+            fullscreenNextBanner.classList.add("hidden");
+        };
 
         function renderQueue() {
             queueCountEl.textContent = `${songQueue.length} queued`;
