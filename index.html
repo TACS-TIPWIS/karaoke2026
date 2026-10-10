@@ -700,7 +700,6 @@
 
         // Android TV Remote Control & Keyboard Key Handlers
         document.addEventListener("keydown", (e) => {
-            // Comprehensive Android TV Media Keys Handler
             const key = e.key;
             const code = e.code;
 
@@ -731,7 +730,6 @@
 
             if (currentDisplayedSongs.length === 0) return;
 
-            // Direct Number Key Entry
             if (e.key >= '0' && e.key <= '9' && document.activeElement !== searchInput) {
                 e.preventDefault(); 
                 pressKey(e.key);
@@ -742,7 +740,6 @@
                 return;
             }
 
-            // 4-Way Arrows and OK Remote Navigation for Keypad & Library
             if (document.activeElement !== searchInput) {
                 if (e.key === "ArrowDown") {
                     e.preventDefault();
@@ -832,6 +829,7 @@
             return parts.length >= 2 ? { artist: parts[0].trim(), title: parts.slice(1).join(' ').trim() } : { artist: "Unknown", title: nameWithoutExt.trim() };
         }
 
+        // Bulk Upload with Duplicate Prevention Check
         if (uploadForm) {
             uploadForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
@@ -840,24 +838,47 @@
                 if (!files || files.length === 0) return alert("Select files first!");
                 const uploadBtn = document.getElementById("upload-btn");
                 uploadBtn.disabled = true;
-                let success = 0;
+                
+                let successCount = 0;
+                let skippedCount = 0;
+
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
-                    uploadProgress.textContent = `Uploading (${i + 1}/${files.length})`;
+                    uploadProgress.textContent = `Processing (${i + 1}/${files.length}): ${file.name}`;
                     try {
                         const parsed = parseFileName(file.name);
+                        
+                        // Check if song title already exists in the database (case-insensitive)
+                        const isDuplicate = allSongs.some(s => s.title.toLowerCase().trim() === parsed.title.toLowerCase().trim());
+
+                        if (isDuplicate) {
+                            console.warn(`Duplicate found: "${parsed.title}" is already in the database. Skipping...`);
+                            skippedCount++;
+                            continue; // Skip upload and proceed to the next song
+                        }
+
+                        // Proceed with storage upload and database insertion if not duplicate
                         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${file.name.split('.').pop()}`;
                         const { error: upErr } = await supabaseClient.storage.from("karaoke_songs").upload(fileName, file);
                         if (upErr) throw upErr;
+
                         const { data: urlData } = supabaseClient.storage.from("karaoke_songs").getPublicUrl(fileName);
-                        const { error: dbErr } = await supabaseClient.from("songs").insert([{ title: parsed.title, artist: parsed.artist, file_path: urlData.publicUrl }]);
+                        const { error: dbErr, data: insertedData } = await supabaseClient.from("songs").insert([{ title: parsed.title, artist: parsed.artist, file_path: urlData.publicUrl }]).select();
                         if (dbErr) throw dbErr;
-                        success++;
-                    } catch (err) { console.error(err); }
+
+                        if (insertedData && insertedData.length > 0) {
+                            allSongs.push(insertedData[0]);
+                        }
+                        successCount++;
+                    } catch (err) { 
+                        console.error("Upload error for file:", file.name, err); 
+                    }
                 }
-                uploadProgress.textContent = `Uploaded ${success} of ${files.length} songs!`;
+
+                uploadProgress.textContent = `Done! Uploaded: ${successCount} | Skipped (Duplicates): ${skippedCount}`;
                 uploadBtn.disabled = false;
                 uploadForm.reset();
+                renderSongs(allSongs);
             });
         }
 
@@ -868,7 +889,11 @@
 
         function setupRealtime() {
             supabaseClient.channel("public:songs").on("postgres_changes", { event: "*", schema: "public", table: "songs" }, payload => {
-                if (payload.eventType === "INSERT") allSongs.push(payload.new);
+                if (payload.eventType === "INSERT") {
+                    if (!allSongs.some(s => s.id === payload.new.id)) {
+                        allSongs.push(payload.new);
+                    }
+                }
                 else if (payload.eventType === "DELETE") allSongs = allSongs.filter(s => s.id !== payload.old.id);
                 const query = searchInput.value.toLowerCase();
                 renderSongs(allSongs.filter(s => s.title.toLowerCase().includes(query) || (s.artist && s.artist.toLowerCase().includes(query))));
