@@ -49,6 +49,7 @@
             border-radius: 0 !important;
             padding: 0 !important;
             margin: 0 !important;
+            position: relative !important;
         }
         #monitor-card:fullscreen video,
         #monitor-card:fullscreen audio {
@@ -62,6 +63,24 @@
             width: 100% !important;
             margin-top: 8px !important;
             flex-shrink: 0 !important;
+        }
+        /* Fullscreen Top-Left Corner Dynamic Overlay */
+        #monitor-card:not(:fullscreen) #fullscreen-corner-info {
+            display: none !important;
+        }
+        #monitor-card:fullscreen #fullscreen-corner-info {
+            display: flex !important;
+            position: absolute !important;
+            top: 16px !important;
+            left: 16px !important;
+            z-index: 50 !important;
+            background: rgba(15, 23, 42, 0.85) !important;
+            border: 1px solid rgba(236, 72, 153, 0.6) !important;
+            backdrop-filter: blur(8px);
+            padding: 8px 14px !important;
+            border-radius: 10px !important;
+            max-width: 45vw !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.7) !important;
         }
 
         /* Professional Scrolling Marquee Animation */
@@ -167,7 +186,7 @@
             <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col justify-between relative">
                 
                 <div>
-                    <!-- Header Bar with Now Playing Details & Next Coming Song Info -->
+                    <!-- Header Bar with Now Playing Details -->
                     <div class="flex justify-between items-center mb-2 bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-lg">
                         <div class="flex items-center gap-2 truncate pr-2">
                             <span class="text-[11px] text-pink-400 font-bold shrink-0">🎵 NOW PLAYING:</span>
@@ -179,6 +198,13 @@
                     </div>
                     
                     <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex flex-col items-center justify-center p-4 text-slate-500 text-center min-h-[300px] flex-grow overflow-hidden relative">
+                        
+                        <!-- Fullscreen Top-Left Corner Live Toggle Overlay -->
+                        <div id="fullscreen-corner-info" class="hidden flex-col">
+                            <span id="corner-label" class="text-[9px] uppercase font-bold text-pink-400 tracking-wider">🎵 NOW PLAYING</span>
+                            <span id="corner-text" class="text-xs font-bold text-white truncate">--</span>
+                        </div>
+
                         <div class="space-y-2">
                             <span class="text-3xl">🎵</span>
                             <p class="text-xs">No track playing right now.<br>Queue songs below to start singing!</p>
@@ -186,7 +212,7 @@
                     </div>
                 </div>
 
-                <!-- Coming Song Banner Placed Safely Below Video Player Container -->
+                <!-- Coming Song Banner Placed Safely Below Video Player Container (Normal View) -->
                 <div id="next-song-banner" class="hidden my-2 bg-gradient-to-r from-pink-900/90 via-purple-900/90 to-slate-900 border border-pink-500/60 rounded-lg py-1.5 px-3 text-center shadow-lg">
                     <span class="text-[9px] uppercase font-bold text-pink-300 tracking-widest block">🌟 COMING SONG (NEXT UP) 🌟</span>
                     <span id="next-banner-text" class="text-xs font-bold text-white truncate block">--</span>
@@ -287,6 +313,9 @@
         const nextSongBanner = document.getElementById("next-song-banner");
         const nextBannerText = document.getElementById("next-banner-text");
         const currentSongDetailsEl = document.getElementById("current-song-details");
+        const fullscreenCornerInfo = document.getElementById("fullscreen-corner-info");
+        const cornerLabel = document.getElementById("corner-label");
+        const cornerText = document.getElementById("corner-text");
 
         let allSongs = [];
         let currentDisplayedSongs = [];
@@ -551,11 +580,27 @@
                     const assignedCode = nextSongIndex !== -1 ? BASE_SONG_CODE + nextSongIndex : '----';
 
                     const displayText = `#${assignedCode} - ${nextSong.title} (${nextSong.artist || 'Unknown'})`;
+                    
+                    // Normal View Coming Song Banner
                     nextBannerText.textContent = displayText;
                     nextSongBanner.classList.remove("hidden");
 
+                    // Fullscreen Top-Left Corner: Switch to COMING SONG for 8 seconds
+                    cornerLabel.textContent = "🌟 COMING SONG (NEXT UP)";
+                    cornerLabel.className = "text-[9px] uppercase font-bold text-pink-300 tracking-wider";
+                    cornerText.textContent = displayText;
+
                     setTimeout(() => {
                         nextSongBanner.classList.add("hidden");
+                        
+                        // Revert Fullscreen Top-Left Corner back to CURRENT PLAYING SONG
+                        if (currentActiveSong) {
+                            const globalIdx = allSongs.indexOf(currentActiveSong);
+                            const songCode = globalIdx !== -1 ? BASE_SONG_CODE + globalIdx : '----';
+                            cornerLabel.textContent = "🎵 NOW PLAYING";
+                            cornerLabel.className = "text-[9px] uppercase font-bold text-pink-400 tracking-wider";
+                            cornerText.textContent = `#${songCode} - ${currentActiveSong.title} (${currentActiveSong.artist || 'Unknown'})`;
+                        }
                     }, 8000);
                 }
             }, 30000);
@@ -576,7 +621,12 @@
 
             const globalSongIdx = allSongs.indexOf(song);
             const songCode = globalSongIdx !== -1 ? BASE_SONG_CODE + globalSongIdx : '----';
-            currentSongDetailsEl.textContent = `#${songCode} - ${song.title} (${song.artist || 'Unknown'})`;
+            const detailsText = `#${songCode} - ${song.title} (${song.artist || 'Unknown'})`;
+
+            currentSongDetailsEl.textContent = detailsText;
+            cornerLabel.textContent = "🎵 NOW PLAYING";
+            cornerLabel.className = "text-[9px] uppercase font-bold text-pink-400 tracking-wider";
+            cornerText.textContent = detailsText;
 
             startComingSongLoop();
 
@@ -584,12 +634,20 @@
 
             if (isVideo) {
                 playerContainer.innerHTML = `
+                    <div id="fullscreen-corner-info" class="hidden flex-col">
+                        <span id="corner-label" class="text-[9px] uppercase font-bold text-pink-400 tracking-wider">${cornerLabel.textContent}</span>
+                        <span id="corner-text" class="text-xs font-bold text-white truncate">${cornerText.textContent}</span>
+                    </div>
                     <video id="media-player" controls autoplay crossorigin="anonymous" class="w-full h-full max-h-[360px] rounded bg-black object-contain" onerror="handleMediaError()" onended="playNextInQueue()">
                         <source src="${url}">
                     </video>
                 `;
             } else {
                 playerContainer.innerHTML = `
+                    <div id="fullscreen-corner-info" class="hidden flex-col">
+                        <span id="corner-label" class="text-[9px] uppercase font-bold text-pink-400 tracking-wider">${cornerLabel.textContent}</span>
+                        <span id="corner-text" class="text-xs font-bold text-white truncate">${cornerText.textContent}</span>
+                    </div>
                     <div class="flex flex-col items-center justify-center space-y-2 py-4 w-full">
                         <div class="w-12 h-12 rounded-full bg-purple-900/40 border border-purple-500/50 flex items-center justify-center text-2xl animate-pulse">🎤</div>
                         <audio id="media-player" controls autoplay crossorigin="anonymous" class="w-full" onerror="handleMediaError()" onended="playNextInQueue()">
@@ -657,7 +715,13 @@
                 if (comingSongInterval) clearInterval(comingSongInterval);
                 nextSongBanner.classList.add("hidden");
                 currentSongDetailsEl.textContent = "No track playing";
-                playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Queue finished!</p></div>`;
+                playerContainer.innerHTML = `
+                    <div id="fullscreen-corner-info" class="hidden flex-col">
+                        <span id="corner-label" class="text-[9px] uppercase font-bold text-pink-400 tracking-wider">🎵 NOW PLAYING</span>
+                        <span id="corner-text" class="text-xs font-bold text-white truncate">No track playing</span>
+                    </div>
+                    <div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Queue finished!</p></div>
+                `;
             }
         };
 
@@ -682,7 +746,13 @@
             if (comingSongInterval) clearInterval(comingSongInterval);
             nextSongBanner.classList.add("hidden");
             currentSongDetailsEl.textContent = "No track playing";
-            playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Stopped.</p></div>`;
+            playerContainer.innerHTML = `
+                <div id="fullscreen-corner-info" class="hidden flex-col">
+                    <span id="corner-label" class="text-[9px] uppercase font-bold text-pink-400 tracking-wider">🎵 NOW PLAYING</span>
+                    <span id="corner-text" class="text-xs font-bold text-white truncate">Stopped</span>
+                </div>
+                <div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Stopped.</p></div>
+            `;
         };
 
         window.removeFromQueue = function(qIndex) { songQueue.splice(qIndex, 1); renderQueue(); };
