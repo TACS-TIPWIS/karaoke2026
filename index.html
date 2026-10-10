@@ -415,7 +415,9 @@
             }
 
             songListEl.innerHTML = songs.map((song, index) => {
-                const assignedCode = BASE_SONG_CODE + index;
+                // Fixed static code calculation based on global database index position rather than volatile list index
+                const globalIndex = allSongs.findIndex(s => s.id === song.id);
+                const assignedCode = BASE_SONG_CODE + (globalIndex !== -1 ? globalIndex : index);
                 const isSelected = (activeZone === 'library' && index === selectedLibraryIndex);
                 return `
                     <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border p-1.5 rounded transition text-xs ${isSelected ? 'tv-focused border-purple-400' : 'border-slate-800'}">
@@ -427,8 +429,8 @@
                             </div>
                         </div>
                         <div class="flex gap-1 shrink-0">
-                            <button onclick="addToQueue(${index})" class="bg-purple-600 hover:bg-purple-700 px-1.5 py-0.5 rounded font-medium text-[10px] text-white">RSV</button>
-                            <button onclick="playSongImmediate(${index})" class="bg-pink-600 hover:bg-pink-700 px-1.5 py-0.5 rounded font-medium text-[10px] text-white">Play</button>
+                            <button onclick="addToQueueFromLibrary(${index})" class="bg-purple-600 hover:bg-purple-700 px-1.5 py-0.5 rounded font-medium text-[10px] text-white">RSV</button>
+                            <button onclick="playSongImmediateFromLibrary(${index})" class="bg-pink-600 hover:bg-pink-700 px-1.5 py-0.5 rounded font-medium text-[10px] text-white">Play</button>
                             ${isAdmin ? `<button onclick="deleteSong('${song.id}')" class="bg-red-600 text-white px-1 py-0.5 rounded text-[10px]">×</button>` : ''}
                         </div>
                     </div>
@@ -483,9 +485,12 @@
             const song = allSongs[targetIndex];
             if (song) {
                 codePreviewEl.innerHTML = `<span class="text-pink-300 font-semibold truncate">🎵 ${escapeHtml(song.title)}</span>`;
-                selectedLibraryIndex = targetIndex;
-                updateFocusVisuals();
-                scrollSelectedIntoView();
+                const filteredIndex = currentDisplayedSongs.findIndex(s => s.id === song.id);
+                if (filteredIndex !== -1) {
+                    selectedLibraryIndex = filteredIndex;
+                    updateFocusVisuals();
+                    scrollSelectedIntoView();
+                }
             }
         };
 
@@ -494,28 +499,33 @@
                 const code = parseInt(songNumberInput.value);
                 if (!isNaN(code) && code >= BASE_SONG_CODE && code <= BASE_SONG_CODE + allSongs.length - 1) {
                     const targetIndex = code - BASE_SONG_CODE;
-                    selectedLibraryIndex = targetIndex;
-                    updateFocusVisuals();
-                    scrollSelectedIntoView();
-                    addToQueue(targetIndex);
-                    speakText(`Reserved code ${code}`);
-                    songNumberInput.value = "";
-                    codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Reserved #${code}! 🎉</span>`;
-                    return;
+                    const song = allSongs[targetIndex];
+                    if (song) {
+                        songQueue.push(song);
+                        renderQueue();
+                        if (!currentActiveSong && !document.querySelector('audio, video')) playNextInQueue();
+                        speakText(`Reserved code ${code}`);
+                        songNumberInput.value = "";
+                        codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Reserved #${code}! 🎉</span>`;
+                        return;
+                    }
                 }
             }
             
             if (currentDisplayedSongs.length > 0) {
                 const song = currentDisplayedSongs[selectedLibraryIndex];
-                const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
-                addToQueue(allSongs.indexOf(song));
+                const globalIndex = allSongs.indexOf(song);
+                const assignedCode = BASE_SONG_CODE + globalIndex;
+                songQueue.push(song);
+                renderQueue();
+                if (!currentActiveSong && !document.querySelector('audio, video')) playNextInQueue();
                 speakText(`Reserved ${song.title}`);
                 codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Reserved #${assignedCode}! 🎉</span>`;
             }
         };
 
-        window.addToQueue = function(index) {
-            const song = allSongs[index] || currentDisplayedSongs[index];
+        window.addToQueueFromLibrary = function(filteredIndex) {
+            const song = currentDisplayedSongs[filteredIndex];
             if (!song) return;
             songQueue.push(song);
             renderQueue();
@@ -524,8 +534,8 @@
             }
         };
 
-        window.playSongImmediate = function(index) {
-            const song = allSongs[index] || currentDisplayedSongs[index];
+        window.playSongImmediateFromLibrary = function(filteredIndex) {
+            const song = currentDisplayedSongs[filteredIndex];
             if (!song) return;
             songQueue.unshift(song);
             renderQueue();
@@ -823,8 +833,11 @@
                     } else if (activeZone === 'library') {
                         const song = currentDisplayedSongs[selectedLibraryIndex];
                         if (song) {
-                            const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
-                            addToQueue(allSongs.indexOf(song));
+                            const globalIndex = allSongs.indexOf(song);
+                            const assignedCode = BASE_SONG_CODE + globalIndex;
+                            songQueue.push(song);
+                            renderQueue();
+                            if (!currentActiveSong && !document.querySelector('audio, video')) playNextInQueue();
                             speakText(`Reserved ${song.title}`);
                             codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Reserved #${assignedCode}! 🎉</span>`;
                         }
@@ -908,7 +921,11 @@
 
         window.deleteSong = async function(id) {
             if (!isAdmin || !confirm("Delete this song?")) return;
-            await supabaseClient.from("songs").delete().eq("id", id);
+            const { error } = await supabaseClient.from("songs").delete().eq("id", id);
+            if (!error) {
+                allSongs = allSongs.filter(s => s.id !== id);
+                renderSongs(currentDisplayedSongs);
+            }
         };
 
         function setupRealtime() {
@@ -918,7 +935,9 @@
                         allSongs.push(payload.new);
                     }
                 }
-                else if (payload.eventType === "DELETE") allSongs = allSongs.filter(s => s.id !== payload.old.id);
+                else if (payload.eventType === "DELETE") {
+                    allSongs = allSongs.filter(s => s.id !== payload.old.id);
+                }
                 const query = searchInput.value.toLowerCase();
                 renderSongs(allSongs.filter(s => s.title.toLowerCase().includes(query) || (s.artist && s.artist.toLowerCase().includes(query))));
             }).subscribe();
