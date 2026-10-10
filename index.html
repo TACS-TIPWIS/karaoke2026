@@ -19,7 +19,7 @@
         input[type=range] {
             accent-color: #ec4899;
         }
-        /* True TV Fullscreen Expansion - Fills 100% of Android TV Screen */
+        /* True TV Fullscreen Expansion - Fills 100% of Android TV Screen with Bottom Marquee */
         #monitor-card:fullscreen {
             width: 100vw !important;
             height: 100vh !important;
@@ -30,21 +30,20 @@
             flex-direction: column !important;
             justify-content: space-between !important;
             background-color: #000000 !important;
-            padding: 0 !important;
+            padding: 12px !important;
             margin: 0 !important;
             box-sizing: border-box !important;
         }
         #monitor-card:fullscreen > div:first-child > div:first-child,
         #monitor-card:fullscreen .grid,
-        #monitor-card:fullscreen #next-song-banner,
-        #monitor-card:fullscreen .marquee-container {
+        #monitor-card:fullscreen #next-song-banner {
             display: none !important;
         }
         #monitor-card:fullscreen #player-container {
             flex-grow: 1 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            max-height: none !important;
+            width: 100% !important;
+            height: auto !important;
+            max-height: calc(100vh - 100px) !important;
             background-color: #000 !important;
             border: none !important;
             border-radius: 0 !important;
@@ -53,10 +52,17 @@
         }
         #monitor-card:fullscreen video,
         #monitor-card:fullscreen audio {
-            width: 100vw !important;
-            height: 100vh !important;
-            max-height: none !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-height: calc(100vh - 110px) !important;
             object-fit: contain !important;
+        }
+        /* Ensure marquee ticker is visible at the bottom in fullscreen */
+        #monitor-card:fullscreen .marquee-container {
+            display: block !important;
+            width: 100% !important;
+            margin-top: 8px !important;
+            flex-shrink: 0 !important;
         }
 
         /* Professional Scrolling Marquee Animation */
