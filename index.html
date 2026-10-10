@@ -717,18 +717,35 @@
             }
 
             if (currentDisplayedSongs.length === 0) return;
+            
             if (e.key >= '0' && e.key <= '9' && document.activeElement !== searchInput) {
                 e.preventDefault(); pressKey(e.key);
             } else if ((e.key === "Backspace" || e.key === "Delete") && document.activeElement !== searchInput) {
                 e.preventDefault(); backspaceKey();
-            } else if ((e.key === "Enter" || e.keyCode === 13) && document.activeElement !== searchInput) {
-                e.preventDefault(); queueSongByCode();
+            } else if ((e.key === "Enter" || e.key === "Select" || e.keyCode === 13) && document.activeElement !== searchInput) {
+                // OK Button / Enter: Queue the currently focused song from the library list
+                e.preventDefault();
+                const song = currentDisplayedSongs[selectedLibraryIndex];
+                if (song) {
+                    const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
+                    addToQueue(allSongs.indexOf(song));
+                    speakText(`Reserved ${song.title}`);
+                    codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Reserved #${assignedCode}! 🎉</span>`;
+                }
             } else if (e.key === "ArrowDown") {
                 e.preventDefault();
-                if (selectedLibraryIndex < currentDisplayedSongs.length - 1) { selectedLibraryIndex++; renderSongs(currentDisplayedSongs); scrollSelectedIntoView(); }
+                if (selectedLibraryIndex < currentDisplayedSongs.length - 1) { 
+                    selectedLibraryIndex++; 
+                    renderSongs(currentDisplayedSongs); 
+                    scrollSelectedIntoView(); 
+                }
             } else if (e.key === "ArrowUp") {
                 e.preventDefault();
-                if (selectedLibraryIndex > 0) { selectedLibraryIndex--; renderSongs(currentDisplayedSongs); scrollSelectedIntoView(); }
+                if (selectedLibraryIndex > 0) { 
+                    selectedLibraryIndex--; 
+                    renderSongs(currentDisplayedSongs); 
+                    scrollSelectedIntoView(); 
+                }
             }
         });
 
