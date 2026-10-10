@@ -174,20 +174,18 @@
                 </div>
 
                 <div>
+                    <!-- Complete Details of Current Playing Song Replacing Main Stage Monitor -->
                     <div class="flex justify-between items-center mb-2">
-                        <h2 class="text-sm font-semibold text-pink-300 flex items-center gap-2">
-                            <span>📺 Main Stage Monitor</span>
-                        </h2>
-                        <!-- Permanent Now Playing Title Badge -->
-                        <div id="upper-left-badge" class="bg-slate-950/90 border border-purple-500/40 px-2.5 py-0.5 rounded text-[11px] text-pink-300 font-semibold shadow hidden">
-                            🎵 NOW PLAYING: <span id="badge-title-text" class="text-slate-200">--</span>
+                        <div class="flex items-center gap-2 truncate pr-2">
+                            <span class="text-xs text-pink-400 font-bold shrink-0">🎵 NOW PLAYING:</span>
+                            <span id="current-song-details" class="text-xs font-bold text-slate-200 truncate">No track playing</span>
                         </div>
-                        <button onclick="toggleFullScreen()" id="fullscreen-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] px-2 py-0.5 rounded transition border border-slate-700">
+                        <button onclick="toggleFullScreen()" id="fullscreen-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] px-2 py-0.5 rounded transition border border-slate-700 shrink-0">
                             ⛶ Fullscreen
                         </button>
                     </div>
                     
-                    <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex flex-col items-center justify-center p-4 text-slate-500 text-center min-h-[300px] flex-grow overflow-hidden">
+                    <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex flex-col items-center justify-center p-4 text-slate-500 text-center min-h-[300px] flex-grow overflow-hidden relative">
                         <div class="space-y-2">
                             <span class="text-3xl">🎵</span>
                             <p class="text-xs">No track playing right now.<br>Queue songs below to start singing!</p>
@@ -196,7 +194,7 @@
                 </div>
 
                 <!-- Coming Song 30-Second Repeating Banner -->
-                <div id="next-song-banner" class="hidden my-2 bg-gradient-to-r from-pink-900/90 via-purple-900/90 to-slate-900 border border-pink-500/60 rounded-lg py-1.5 px-3 text-center shadow-lg animate-pulse">
+                <div id="next-song-banner" class="hidden my-2 bg-gradient-to-r from-pink-900/90 via-purple-900/90 to-slate-900 border border-pink-500/60 rounded-lg py-1.5 px-3 text-center shadow-lg">
                     <span class="text-[9px] uppercase font-bold text-pink-300 tracking-widest block">🌟 COMING SONG (NEXT UP) 🌟</span>
                     <span id="next-banner-text" class="text-xs font-bold text-white truncate block">--</span>
                 </div>
@@ -295,8 +293,7 @@
         const adminToggleBtn = document.getElementById("admin-toggle-btn");
         const nextSongBanner = document.getElementById("next-song-banner");
         const nextBannerText = document.getElementById("next-banner-text");
-        const upperLeftBadge = document.getElementById("upper-left-badge");
-        const badgeTitleText = document.getElementById("badge-title-text");
+        const currentSongDetailsEl = document.getElementById("current-song-details");
         const fullscreenNextBanner = document.getElementById("fullscreen-next-banner");
         const fullscreenNextText = document.getElementById("fullscreen-next-text");
 
@@ -569,16 +566,11 @@
 
                     nextSongBanner.classList.remove("hidden");
                     fullscreenNextBanner.classList.remove("hidden");
-                    upperLeftBadge.classList.add("hidden");
 
                     setTimeout(() => {
                         nextSongBanner.classList.add("hidden");
                         fullscreenNextBanner.classList.add("hidden");
-                        if (currentActiveSong) {
-                            badgeTitleText.textContent = `${currentActiveSong.title} - ${currentActiveSong.artist || 'Unknown'}`;
-                            upperLeftBadge.classList.remove("hidden");
-                        }
-                    }, 10000);
+                    }, 8000);
                 }
             }, 30000);
         }
@@ -596,8 +588,9 @@
             }
             currentActiveSong = song;
 
-            badgeTitleText.textContent = `${song.title} - ${song.artist || 'Unknown'}`;
-            upperLeftBadge.classList.remove("hidden");
+            const globalSongIdx = allSongs.indexOf(song);
+            const songCode = globalSongIdx !== -1 ? BASE_SONG_CODE + globalSongIdx : '----';
+            currentSongDetailsEl.textContent = `#${songCode} - ${song.title} (${song.artist || 'Unknown'})`;
 
             startComingSongLoop();
 
@@ -677,8 +670,8 @@
                 currentActiveSong = null;
                 if (comingSongInterval) clearInterval(comingSongInterval);
                 nextSongBanner.classList.add("hidden");
-                upperLeftBadge.classList.add("hidden");
                 fullscreenNextBanner.classList.add("hidden");
+                currentSongDetailsEl.textContent = "No track playing";
                 playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Queue finished!</p></div>`;
             }
         };
@@ -703,8 +696,8 @@
             currentActiveSong = null;
             if (comingSongInterval) clearInterval(comingSongInterval);
             nextSongBanner.classList.add("hidden");
-            upperLeftBadge.classList.add("hidden");
             fullscreenNextBanner.classList.add("hidden");
+            currentSongDetailsEl.textContent = "No track playing";
             playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Stopped.</p></div>`;
         };
 
