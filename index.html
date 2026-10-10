@@ -199,10 +199,10 @@
                     
                     <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex flex-col items-center justify-center p-4 text-slate-500 text-center min-h-[300px] flex-grow overflow-hidden relative">
                         
-                        <!-- Fullscreen Top-Left Corner Live Toggle Overlay -->
+                        <!-- Fullscreen Top-Left Corner Dynamic Overlay -->
                         <div id="fullscreen-corner-info" class="hidden flex-col">
                             <span id="corner-label" class="text-[9px] uppercase font-bold text-pink-400 tracking-wider">🎵 NOW PLAYING</span>
-                            <span id="corner-text" class="text-xs font-bold text-white truncate">--</span>
+                            <span id="corner-text" class="text-xs font-bold text-white truncate">No track playing</span>
                         </div>
 
                         <div class="space-y-2">
@@ -313,9 +313,6 @@
         const nextSongBanner = document.getElementById("next-song-banner");
         const nextBannerText = document.getElementById("next-banner-text");
         const currentSongDetailsEl = document.getElementById("current-song-details");
-        const fullscreenCornerInfo = document.getElementById("fullscreen-corner-info");
-        const cornerLabel = document.getElementById("corner-label");
-        const cornerText = document.getElementById("corner-text");
 
         let allSongs = [];
         let currentDisplayedSongs = [];
@@ -574,7 +571,10 @@
             if (comingSongInterval) clearInterval(comingSongInterval);
 
             comingSongInterval = setInterval(() => {
-                if (songQueue.length > 0 && currentActiveSong) {
+                const cornerLabel = document.getElementById("corner-label");
+                const cornerText = document.getElementById("corner-text");
+
+                if (songQueue.length > 0 && currentActiveSong && cornerLabel && cornerText) {
                     const nextSong = songQueue[0];
                     const nextSongIndex = allSongs.indexOf(nextSong);
                     const assignedCode = nextSongIndex !== -1 ? BASE_SONG_CODE + nextSongIndex : '----';
@@ -624,19 +624,14 @@
             const detailsText = `#${songCode} - ${song.title} (${song.artist || 'Unknown'})`;
 
             currentSongDetailsEl.textContent = detailsText;
-            cornerLabel.textContent = "🎵 NOW PLAYING";
-            cornerLabel.className = "text-[9px] uppercase font-bold text-pink-400 tracking-wider";
-            cornerText.textContent = detailsText;
-
-            startComingSongLoop();
 
             const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
 
             if (isVideo) {
                 playerContainer.innerHTML = `
                     <div id="fullscreen-corner-info" class="hidden flex-col">
-                        <span id="corner-label" class="text-[9px] uppercase font-bold text-pink-400 tracking-wider">${cornerLabel.textContent}</span>
-                        <span id="corner-text" class="text-xs font-bold text-white truncate">${cornerText.textContent}</span>
+                        <span id="corner-label" class="text-[9px] uppercase font-bold text-pink-400 tracking-wider">🎵 NOW PLAYING</span>
+                        <span id="corner-text" class="text-xs font-bold text-white truncate">${detailsText}</span>
                     </div>
                     <video id="media-player" controls autoplay crossorigin="anonymous" class="w-full h-full max-h-[360px] rounded bg-black object-contain" onerror="handleMediaError()" onended="playNextInQueue()">
                         <source src="${url}">
@@ -645,8 +640,8 @@
             } else {
                 playerContainer.innerHTML = `
                     <div id="fullscreen-corner-info" class="hidden flex-col">
-                        <span id="corner-label" class="text-[9px] uppercase font-bold text-pink-400 tracking-wider">${cornerLabel.textContent}</span>
-                        <span id="corner-text" class="text-xs font-bold text-white truncate">${cornerText.textContent}</span>
+                        <span id="corner-label" class="text-[9px] uppercase font-bold text-pink-400 tracking-wider">🎵 NOW PLAYING</span>
+                        <span id="corner-text" class="text-xs font-bold text-white truncate">${detailsText}</span>
                     </div>
                     <div class="flex flex-col items-center justify-center space-y-2 py-4 w-full">
                         <div class="w-12 h-12 rounded-full bg-purple-900/40 border border-purple-500/50 flex items-center justify-center text-2xl animate-pulse">🎤</div>
@@ -657,6 +652,7 @@
                 `;
             }
             setupAudioContextPipeline();
+            startComingSongLoop();
         }
 
         function setupAudioContextPipeline() {
