@@ -19,7 +19,7 @@
         input[type=range] {
             accent-color: #ec4899;
         }
-        /* True TV Fullscreen Expansion & Disable Mouse Pointer in TV Mode */
+        /* True TV Fullscreen Expansion - Hide Header & Controls, Make Video Fill 100% Screen */
         #monitor-card:fullscreen {
             width: 100vw !important;
             height: 100vh !important;
@@ -28,21 +28,28 @@
             border-radius: 0 !important;
             display: flex !important;
             flex-direction: column !important;
-            background-color: #020617 !important;
-            padding: 24px !important;
+            justify-content: space-between !important;
+            background-color: #000000 !important;
+            padding: 12px !important;
             box-sizing: border-box !important;
             pointer-events: none !important;
         }
+        #monitor-card:fullscreen > div:first-child > div:first-child,
+        #monitor-card:fullscreen .grid {
+            display: none !important;
+        }
         #monitor-card:fullscreen #player-container {
             flex-grow: 1 !important;
-            min-height: 0 !important;
-            height: 100% !important;
+            width: 100% !important;
+            height: calc(100vh - 80px) !important;
+            background-color: #000 !important;
+            border: none !important;
         }
         #monitor-card:fullscreen video,
         #monitor-card:fullscreen audio {
             width: 100% !important;
             height: 100% !important;
-            max-height: calc(100vh - 220px) !important;
+            max-height: calc(100vh - 90px) !important;
             object-fit: contain !important;
         }
 
@@ -304,6 +311,15 @@
         let currentTempo = 1.0;
         let currentVol = 1.0;
 
+        // Android TV Speech Synthesis Setup
+        let synthVoices = [];
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                synthVoices = window.speechSynthesis.getVoices();
+            };
+            synthVoices = window.speechSynthesis.getVoices();
+        }
+
         let activeUtterance = null;
         function speakText(text) {
             if ('speechSynthesis' in window) {
@@ -312,9 +328,12 @@
                     activeUtterance = new SpeechSynthesisUtterance(text.toString());
                     activeUtterance.rate = 1.1;
                     activeUtterance.pitch = 1.0;
+                    if (synthVoices.length > 0) {
+                        activeUtterance.voice = synthVoices.find(v => v.lang.startsWith('en')) || synthVoices[0];
+                    }
                     window.speechSynthesis.speak(activeUtterance);
                 } catch (e) {
-                    console.error("Speech synthesis error:", e);
+                    console.error("Speech synthesis error on TV:", e);
                 }
             }
         }
