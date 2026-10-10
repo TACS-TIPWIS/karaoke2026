@@ -10,10 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .tv-focused {
-            border-color: #c084fc !important;
-            background-color: rgba(88, 28, 135, 0.7) !important;
-            box-shadow: 0 0 20px rgba(192, 132, 252, 0.7);
-            transform: scale(1.02);
+            border-color: #38bdf8 !important;
+            background-color: rgba(56, 189, 248, 0.3) !important;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.8);
+            transform: scale(1.03);
             transition: all 0.1s ease-in-out;
         }
         input[type=range] {
@@ -700,41 +700,33 @@
 
         // Android TV Remote Control & Keyboard Key Handlers
         document.addEventListener("keydown", (e) => {
-            // 1. Global Media Remote Controls (Play/Pause, Stop, Next, Previous)
-            switch (e.key) {
-                case "MediaPlayPause":
-                case "Play":
-                case "Pause":
-                case " ":
-                    if (document.activeElement !== searchInput) {
-                        e.preventDefault();
-                        togglePlayPause();
-                        return;
-                    }
-                    break;
-                case "MediaStop":
-                case "Stop":
+            // Comprehensive Android TV Media Keys Handler
+            const key = e.key;
+            const code = e.code;
+
+            if (key === "MediaPlayPause" || key === "Play" || key === "Pause" || code === "MediaPlayPause" || (key === " " && document.activeElement !== searchInput)) {
+                e.preventDefault();
+                togglePlayPause();
+                return;
+            }
+            if (key === "MediaStop" || key === "Stop" || code === "MediaStop") {
+                e.preventDefault();
+                stopMedia();
+                return;
+            }
+            if (key === "MediaTrackNext" || key === "FastFwd" || code === "MediaTrackNext" || key === "F") {
+                if (document.activeElement !== searchInput) {
                     e.preventDefault();
-                    stopMedia();
+                    playNextInQueue();
                     return;
-                case "MediaTrackNext":
-                case "FastFwd":
-                case "F":
-                    if (document.activeElement !== searchInput) {
-                        e.preventDefault();
-                        playNextInQueue();
-                        return;
-                    }
-                    break;
-                case "MediaTrackPrevious":
-                case "Rewind":
-                case "R":
-                    if (document.activeElement !== searchInput) {
-                        e.preventDefault();
-                        playPreviousInQueue();
-                        return;
-                    }
-                    break;
+                }
+            }
+            if (key === "MediaTrackPrevious" || key === "Rewind" || code === "MediaTrackPrevious" || key === "R") {
+                if (document.activeElement !== searchInput) {
+                    e.preventDefault();
+                    playPreviousInQueue();
+                    return;
+                }
             }
 
             if (currentDisplayedSongs.length === 0) return;
