@@ -291,9 +291,8 @@
         let currentDisplayedSongs = [];
         let songQueue = [];
         
-        // Navigation Focus State: 'keypad' or 'library'
         let activeZone = 'keypad'; 
-        let selectedKeypadIndex = 0; // 0 to 15 grid items
+        let selectedKeypadIndex = 0; 
         let selectedLibraryIndex = 0;
 
         let historyQueue = [];
@@ -412,7 +411,6 @@
         }
 
         function updateFocusVisuals() {
-            // Update Keypad focus
             for (let i = 0; i < 16; i++) {
                 const btn = document.getElementById(`kp-${i}`);
                 if (btn) {
@@ -423,7 +421,6 @@
                     }
                 }
             }
-            // Update Library focus
             renderSongs(currentDisplayedSongs);
         }
 
@@ -557,8 +554,6 @@
 
             startComingSongLoop();
 
-            const title = escapeHtml(song.title);
-            const artist = escapeHtml(song.artist || 'Unknown Artist');
             const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
 
             if (isVideo) {
@@ -705,9 +700,11 @@
 
         // Android TV Remote Control & Keyboard Key Handlers
         document.addEventListener("keydown", (e) => {
-            // Media Control Remote Buttons
+            // 1. Global Media Remote Controls (Play/Pause, Stop, Next, Previous)
             switch (e.key) {
                 case "MediaPlayPause":
+                case "Play":
+                case "Pause":
                 case " ":
                     if (document.activeElement !== searchInput) {
                         e.preventDefault();
@@ -716,10 +713,12 @@
                     }
                     break;
                 case "MediaStop":
+                case "Stop":
                     e.preventDefault();
                     stopMedia();
                     return;
                 case "MediaTrackNext":
+                case "FastFwd":
                 case "F":
                     if (document.activeElement !== searchInput) {
                         e.preventDefault();
@@ -728,6 +727,7 @@
                     }
                     break;
                 case "MediaTrackPrevious":
+                case "Rewind":
                 case "R":
                     if (document.activeElement !== searchInput) {
                         e.preventDefault();
@@ -750,7 +750,7 @@
                 return;
             }
 
-            // 4-Way Arrows and OK Remote Navigation
+            // 4-Way Arrows and OK Remote Navigation for Keypad & Library
             if (document.activeElement !== searchInput) {
                 if (e.key === "ArrowDown") {
                     e.preventDefault();
@@ -758,7 +758,6 @@
                         if (selectedKeypadIndex + 4 < 16) {
                             selectedKeypadIndex += 4;
                         } else {
-                            // Switch from bottom of keypad down into Library
                             activeZone = 'library';
                             selectedLibraryIndex = 0;
                         }
@@ -775,9 +774,8 @@
                         if (selectedLibraryIndex > 0) {
                             selectedLibraryIndex--;
                         } else {
-                            // Switch back up to keypad
                             activeZone = 'keypad';
-                            selectedKeypadIndex = 12; // Bottom row of keypad
+                            selectedKeypadIndex = 12;
                         }
                     } else if (activeZone === 'keypad') {
                         if (selectedKeypadIndex - 4 >= 0) {
@@ -805,11 +803,9 @@
                 } else if (e.key === "Enter" || e.key === "Select" || e.keyCode === 13) {
                     e.preventDefault();
                     if (activeZone === 'keypad') {
-                        // Trigger click/action of the currently focused keypad button
                         const btn = document.getElementById(`kp-${selectedKeypadIndex}`);
                         if (btn) btn.click();
                     } else if (activeZone === 'library') {
-                        // Queue/Reserve the currently selected library song
                         const song = currentDisplayedSongs[selectedLibraryIndex];
                         if (song) {
                             const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
