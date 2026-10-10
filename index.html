@@ -11,8 +11,8 @@
     <style>
         .tv-focused {
             border-color: #c084fc !important;
-            background-color: rgba(88, 28, 135, 0.6) !important;
-            box-shadow: 0 0 20px rgba(192, 132, 252, 0.6);
+            background-color: rgba(88, 28, 135, 0.7) !important;
+            box-shadow: 0 0 20px rgba(192, 132, 252, 0.7);
             transform: scale(1.02);
             transition: all 0.1s ease-in-out;
         }
@@ -212,26 +212,26 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-4 gap-1.5">
-                    <button onclick="pressKey('1')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">1</button>
-                    <button onclick="pressKey('2')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">2</button>
-                    <button onclick="pressKey('3')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">3</button>
-                    <button onclick="backspaceKey()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded text-sm transition">⌫</button>
+                <div id="keypad-grid" class="grid grid-cols-4 gap-1.5">
+                    <button id="kp-0" onclick="pressKey('1')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">1</button>
+                    <button id="kp-1" onclick="pressKey('2')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">2</button>
+                    <button id="kp-2" onclick="pressKey('3')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">3</button>
+                    <button id="kp-3" onclick="backspaceKey()" class="keypad-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded text-sm transition">⌫</button>
                     
-                    <button onclick="pressKey('4')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">4</button>
-                    <button onclick="pressKey('5')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">5</button>
-                    <button onclick="pressKey('6')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">6</button>
-                    <button onclick="queueSongByCode()" class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded text-xs transition">RSV List</button>
+                    <button id="kp-4" onclick="pressKey('4')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">4</button>
+                    <button id="kp-5" onclick="pressKey('5')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">5</button>
+                    <button id="kp-6" onclick="pressKey('6')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">6</button>
+                    <button id="kp-7" onclick="queueSongByCode()" class="keypad-btn bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded text-xs transition">RSV List</button>
 
-                    <button onclick="pressKey('7')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">7</button>
-                    <button onclick="pressKey('8')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">8</button>
-                    <button onclick="pressKey('9')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">9</button>
-                    <button onclick="toggleFullScreen()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded text-xs transition">📺 TV</button>
+                    <button id="kp-8" onclick="pressKey('7')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">7</button>
+                    <button id="kp-9" onclick="pressKey('8')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">8</button>
+                    <button id="kp-10" onclick="pressKey('9')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">9</button>
+                    <button id="kp-11" onclick="toggleFullScreen()" class="keypad-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded text-xs transition">📺 TV</button>
 
-                    <button onclick="queueSongByCode()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded text-xs transition">RES</button>
-                    <button onclick="pressKey('0')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">0</button>
-                    <button onclick="clearCodeInput()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded text-xs transition">CAN</button>
-                    <button onclick="queueSongByCode()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded text-xs transition">OK</button>
+                    <button id="kp-12" onclick="queueSongByCode()" class="keypad-btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded text-xs transition">RES</button>
+                    <button id="kp-13" onclick="pressKey('0')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">0</button>
+                    <button id="kp-14" onclick="clearCodeInput()" class="keypad-btn bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded text-xs transition">CAN</button>
+                    <button id="kp-15" onclick="queueSongByCode()" class="keypad-btn bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded text-xs transition">OK</button>
                 </div>
 
                 <input type="text" id="search-input" placeholder="Or search by title/artist..." 
@@ -290,7 +290,12 @@
         let allSongs = [];
         let currentDisplayedSongs = [];
         let songQueue = [];
+        
+        // Navigation Focus State: 'keypad' or 'library'
+        let activeZone = 'keypad'; 
+        let selectedKeypadIndex = 0; // 0 to 15 grid items
         let selectedLibraryIndex = 0;
+
         let historyQueue = [];
         let currentActiveSong = null;
         let isAdmin = false;
@@ -362,6 +367,7 @@
                 
                 allSongs = data || [];
                 renderSongs(allSongs);
+                updateFocusVisuals();
                 setupRealtime();
             } catch (err) {
                 console.error("Connection error:", err);
@@ -385,7 +391,7 @@
 
             songListEl.innerHTML = songs.map((song, index) => {
                 const assignedCode = BASE_SONG_CODE + index;
-                const isSelected = (index === selectedLibraryIndex);
+                const isSelected = (activeZone === 'library' && index === selectedLibraryIndex);
                 return `
                     <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border p-1.5 rounded transition text-xs ${isSelected ? 'tv-focused border-purple-400' : 'border-slate-800'}">
                         <div class="overflow-hidden pr-2 flex items-center gap-1.5">
@@ -403,6 +409,22 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        function updateFocusVisuals() {
+            // Update Keypad focus
+            for (let i = 0; i < 16; i++) {
+                const btn = document.getElementById(`kp-${i}`);
+                if (btn) {
+                    if (activeZone === 'keypad' && i === selectedKeypadIndex) {
+                        btn.classList.add("tv-focused", "border-2", "border-purple-400");
+                    } else {
+                        btn.classList.remove("tv-focused", "border-2", "border-purple-400");
+                    }
+                }
+            }
+            // Update Library focus
+            renderSongs(currentDisplayedSongs);
         }
 
         window.pressKey = function(digit) {
@@ -439,7 +461,7 @@
             if (song) {
                 codePreviewEl.innerHTML = `<span class="text-pink-300 font-semibold truncate">🎵 ${escapeHtml(song.title)}</span>`;
                 selectedLibraryIndex = targetIndex;
-                renderSongs(allSongs);
+                updateFocusVisuals();
                 scrollSelectedIntoView();
             }
         };
@@ -450,7 +472,7 @@
                 if (!isNaN(code) && code >= BASE_SONG_CODE && code <= BASE_SONG_CODE + allSongs.length - 1) {
                     const targetIndex = code - BASE_SONG_CODE;
                     selectedLibraryIndex = targetIndex;
-                    renderSongs(allSongs);
+                    updateFocusVisuals();
                     scrollSelectedIntoView();
                     addToQueue(targetIndex);
                     speakText(`Reserved code ${code}`);
@@ -487,7 +509,6 @@
             playNextInQueue();
         };
 
-        // Repeating 30-Second Coming Song Announcement Loop
         function startComingSongLoop() {
             if (comingSongInterval) clearInterval(comingSongInterval);
 
@@ -717,34 +738,86 @@
             }
 
             if (currentDisplayedSongs.length === 0) return;
-            
+
+            // Direct Number Key Entry
             if (e.key >= '0' && e.key <= '9' && document.activeElement !== searchInput) {
-                e.preventDefault(); pressKey(e.key);
+                e.preventDefault(); 
+                pressKey(e.key);
+                return;
             } else if ((e.key === "Backspace" || e.key === "Delete") && document.activeElement !== searchInput) {
-                e.preventDefault(); backspaceKey();
-            } else if ((e.key === "Enter" || e.key === "Select" || e.keyCode === 13) && document.activeElement !== searchInput) {
-                // OK Button / Enter: Queue the currently focused song from the library list
-                e.preventDefault();
-                const song = currentDisplayedSongs[selectedLibraryIndex];
-                if (song) {
-                    const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
-                    addToQueue(allSongs.indexOf(song));
-                    speakText(`Reserved ${song.title}`);
-                    codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Reserved #${assignedCode}! 🎉</span>`;
-                }
-            } else if (e.key === "ArrowDown") {
-                e.preventDefault();
-                if (selectedLibraryIndex < currentDisplayedSongs.length - 1) { 
-                    selectedLibraryIndex++; 
-                    renderSongs(currentDisplayedSongs); 
-                    scrollSelectedIntoView(); 
-                }
-            } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                if (selectedLibraryIndex > 0) { 
-                    selectedLibraryIndex--; 
-                    renderSongs(currentDisplayedSongs); 
-                    scrollSelectedIntoView(); 
+                e.preventDefault(); 
+                backspaceKey();
+                return;
+            }
+
+            // 4-Way Arrows and OK Remote Navigation
+            if (document.activeElement !== searchInput) {
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    if (activeZone === 'keypad') {
+                        if (selectedKeypadIndex + 4 < 16) {
+                            selectedKeypadIndex += 4;
+                        } else {
+                            // Switch from bottom of keypad down into Library
+                            activeZone = 'library';
+                            selectedLibraryIndex = 0;
+                        }
+                    } else if (activeZone === 'library') {
+                        if (selectedLibraryIndex < currentDisplayedSongs.length - 1) {
+                            selectedLibraryIndex++;
+                        }
+                    }
+                    updateFocusVisuals();
+                    scrollSelectedIntoView();
+                } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    if (activeZone === 'library') {
+                        if (selectedLibraryIndex > 0) {
+                            selectedLibraryIndex--;
+                        } else {
+                            // Switch back up to keypad
+                            activeZone = 'keypad';
+                            selectedKeypadIndex = 12; // Bottom row of keypad
+                        }
+                    } else if (activeZone === 'keypad') {
+                        if (selectedKeypadIndex - 4 >= 0) {
+                            selectedKeypadIndex -= 4;
+                        }
+                    }
+                    updateFocusVisuals();
+                    scrollSelectedIntoView();
+                } else if (e.key === "ArrowLeft") {
+                    e.preventDefault();
+                    if (activeZone === 'keypad') {
+                        if (selectedKeypadIndex % 4 !== 0) {
+                            selectedKeypadIndex--;
+                        }
+                    }
+                    updateFocusVisuals();
+                } else if (e.key === "ArrowRight") {
+                    e.preventDefault();
+                    if (activeZone === 'keypad') {
+                        if (selectedKeypadIndex % 4 !== 3) {
+                            selectedKeypadIndex++;
+                        }
+                    }
+                    updateFocusVisuals();
+                } else if (e.key === "Enter" || e.key === "Select" || e.keyCode === 13) {
+                    e.preventDefault();
+                    if (activeZone === 'keypad') {
+                        // Trigger click/action of the currently focused keypad button
+                        const btn = document.getElementById(`kp-${selectedKeypadIndex}`);
+                        if (btn) btn.click();
+                    } else if (activeZone === 'library') {
+                        // Queue/Reserve the currently selected library song
+                        const song = currentDisplayedSongs[selectedLibraryIndex];
+                        if (song) {
+                            const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
+                            addToQueue(allSongs.indexOf(song));
+                            speakText(`Reserved ${song.title}`);
+                            codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Reserved #${assignedCode}! 🎉</span>`;
+                        }
+                    }
                 }
             }
         });
@@ -759,8 +832,10 @@
         }
 
         function scrollSelectedIntoView() {
-            const el = document.getElementById(`song-item-${selectedLibraryIndex}`);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (activeZone === 'library') {
+                const el = document.getElementById(`song-item-${selectedLibraryIndex}`);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
 
         function parseFileName(filename) {
