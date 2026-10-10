@@ -19,7 +19,7 @@
         input[type=range] {
             accent-color: #ec4899;
         }
-        /* True TV Fullscreen Expansion - Fills 100% of Android TV Screen with Bottom Marquee */
+        /* True TV Fullscreen Expansion - Fills 100% of Android TV Screen */
         #monitor-card:fullscreen {
             width: 100vw !important;
             height: 100vh !important;
@@ -57,7 +57,6 @@
             max-height: calc(100vh - 110px) !important;
             object-fit: contain !important;
         }
-        /* Ensure marquee ticker is visible at the bottom in fullscreen */
         #monitor-card:fullscreen .marquee-container {
             display: block !important;
             width: 100% !important;
@@ -98,7 +97,7 @@
         </div>
     </header>
 
-    <!-- Main Layout (Aligned Stretch to Bottom) -->
+    <!-- Main Layout -->
     <main class="flex-grow container mx-auto p-3 md:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
         
         <!-- 1. LEFT COLUMN: CODE ENTRY & LIBRARY -->
@@ -167,17 +166,11 @@
         <div class="lg:col-span-6 space-y-3 flex flex-col order-1 lg:order-2">
             <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col justify-between relative">
                 
-                <!-- Fullscreen Top Display for Coming Song with Code Number -->
-                <div id="fullscreen-next-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-purple-950/90 border border-pink-500/80 px-6 py-2 rounded-xl text-center shadow-2xl backdrop-blur">
-                    <span class="text-[10px] uppercase font-bold text-pink-300 tracking-widest block">⭐ COMING SONG (NEXT IN QUEUE) ⭐</span>
-                    <span id="fullscreen-next-text" class="text-sm font-black text-white tracking-wide block">--</span>
-                </div>
-
                 <div>
-                    <!-- Complete Details of Current Playing Song Replacing Main Stage Monitor -->
-                    <div class="flex justify-between items-center mb-2">
+                    <!-- Header Bar with Now Playing Details & Next Coming Song Info -->
+                    <div class="flex justify-between items-center mb-2 bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-lg">
                         <div class="flex items-center gap-2 truncate pr-2">
-                            <span class="text-xs text-pink-400 font-bold shrink-0">🎵 NOW PLAYING:</span>
+                            <span class="text-[11px] text-pink-400 font-bold shrink-0">🎵 NOW PLAYING:</span>
                             <span id="current-song-details" class="text-xs font-bold text-slate-200 truncate">No track playing</span>
                         </div>
                         <button onclick="toggleFullScreen()" id="fullscreen-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] px-2 py-0.5 rounded transition border border-slate-700 shrink-0">
@@ -193,7 +186,7 @@
                     </div>
                 </div>
 
-                <!-- Coming Song 30-Second Repeating Banner -->
+                <!-- Coming Song Banner Placed Safely Below Video Player Container -->
                 <div id="next-song-banner" class="hidden my-2 bg-gradient-to-r from-pink-900/90 via-purple-900/90 to-slate-900 border border-pink-500/60 rounded-lg py-1.5 px-3 text-center shadow-lg">
                     <span class="text-[9px] uppercase font-bold text-pink-300 tracking-widest block">🌟 COMING SONG (NEXT UP) 🌟</span>
                     <span id="next-banner-text" class="text-xs font-bold text-white truncate block">--</span>
@@ -294,8 +287,6 @@
         const nextSongBanner = document.getElementById("next-song-banner");
         const nextBannerText = document.getElementById("next-banner-text");
         const currentSongDetailsEl = document.getElementById("current-song-details");
-        const fullscreenNextBanner = document.getElementById("fullscreen-next-banner");
-        const fullscreenNextText = document.getElementById("fullscreen-next-text");
 
         let allSongs = [];
         let currentDisplayedSongs = [];
@@ -560,16 +551,11 @@
                     const assignedCode = nextSongIndex !== -1 ? BASE_SONG_CODE + nextSongIndex : '----';
 
                     const displayText = `#${assignedCode} - ${nextSong.title} (${nextSong.artist || 'Unknown'})`;
-
                     nextBannerText.textContent = displayText;
-                    fullscreenNextText.textContent = displayText;
-
                     nextSongBanner.classList.remove("hidden");
-                    fullscreenNextBanner.classList.remove("hidden");
 
                     setTimeout(() => {
                         nextSongBanner.classList.add("hidden");
-                        fullscreenNextBanner.classList.add("hidden");
                     }, 8000);
                 }
             }, 30000);
@@ -670,7 +656,6 @@
                 currentActiveSong = null;
                 if (comingSongInterval) clearInterval(comingSongInterval);
                 nextSongBanner.classList.add("hidden");
-                fullscreenNextBanner.classList.add("hidden");
                 currentSongDetailsEl.textContent = "No track playing";
                 playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Queue finished!</p></div>`;
             }
@@ -696,7 +681,6 @@
             currentActiveSong = null;
             if (comingSongInterval) clearInterval(comingSongInterval);
             nextSongBanner.classList.add("hidden");
-            fullscreenNextBanner.classList.add("hidden");
             currentSongDetailsEl.textContent = "No track playing";
             playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Stopped.</p></div>`;
         };
@@ -706,7 +690,6 @@
             songQueue = []; 
             renderQueue(); 
             if (comingSongInterval) clearInterval(comingSongInterval);
-            fullscreenNextBanner.classList.add("hidden");
             nextSongBanner.classList.add("hidden");
         };
 
