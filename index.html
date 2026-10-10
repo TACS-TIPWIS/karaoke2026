@@ -356,15 +356,41 @@
             }
         }
 
+        // 50,000+ Song Pagination Loader
         async function initApp() {
             try {
-                const { data, error } = await supabaseClient.from("songs").select("*").order("created_at", { ascending: true });
-                if (error) throw error;
+                let allFetchedSongs = [];
+                let rangeSize = 1000;
+                let from = 0;
+                let to = rangeSize - 1;
+                let fetchMore = true;
+
+                while (fetchMore) {
+                    const { data, error } = await supabaseClient
+                        .from("songs")
+                        .select("*")
+                        .order("created_at", { ascending: true })
+                        .range(from, to);
+
+                    if (error) throw error;
+
+                    if (data && data.length > 0) {
+                        allFetchedSongs = allFetchedSongs.concat(data);
+                        if (data.length < rangeSize) {
+                            fetchMore = false;
+                        } else {
+                            from += rangeSize;
+                            to += rangeSize;
+                        }
+                    } else {
+                        fetchMore = false;
+                    }
+                }
                 
                 statusEl.textContent = "Connected 🟢";
                 statusEl.className = "text-xs px-2.5 py-0.5 rounded-full bg-green-600 text-green-100";
                 
-                allSongs = data || [];
+                allSongs = allFetchedSongs;
                 renderSongs(allSongs);
                 updateFocusVisuals();
                 setupRealtime();
@@ -848,16 +874,14 @@
                     try {
                         const parsed = parseFileName(file.name);
                         
-                        // Check if song title already exists in the database (case-insensitive)
                         const isDuplicate = allSongs.some(s => s.title.toLowerCase().trim() === parsed.title.toLowerCase().trim());
 
                         if (isDuplicate) {
                             console.warn(`Duplicate found: "${parsed.title}" is already in the database. Skipping...`);
                             skippedCount++;
-                            continue; // Skip upload and proceed to the next song
+                            continue;
                         }
 
-                        // Proceed with storage upload and database insertion if not duplicate
                         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${file.name.split('.').pop()}`;
                         const { error: upErr } = await supabaseClient.storage.from("karaoke_songs").upload(fileName, file);
                         if (upErr) throw upErr;
