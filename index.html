@@ -499,26 +499,23 @@
 
                     const displayText = `#${assignedCode} - ${nextSong.title} (${nextSong.artist || 'Unknown'})`;
 
-                    // Update banners
                     nextBannerText.textContent = displayText;
                     fullscreenNextText.textContent = displayText;
 
-                    // Show banners
                     nextSongBanner.classList.remove("hidden");
                     fullscreenNextBanner.classList.remove("hidden");
                     upperLeftBadge.classList.add("hidden");
 
-                    // Hide the coming song banner after 10 seconds, revert to normal playing badge
                     setTimeout(() => {
                         nextSongBanner.classList.add("hidden");
                         fullscreenNextBanner.classList.add("hidden");
                         if (currentActiveSong) {
-                            badgeTitleText.textContent = `${currentActiveSong.title} -${currentActiveSong.artist || 'Unknown'}`;
+                            badgeTitleText.textContent = `${currentActiveSong.title} - ${currentActiveSong.artist || 'Unknown'}`;
                             upperLeftBadge.classList.remove("hidden");
                         }
                     }, 10000);
                 }
-            }, 30000); // Triggers every 30 seconds
+            }, 30000);
         }
 
         function playMedia(song) {
@@ -534,11 +531,9 @@
             }
             currentActiveSong = song;
 
-            // Show current song badge immediately
-            badgeTitleText.textContent = `${song.title} -${song.artist || 'Unknown'}`;
+            badgeTitleText.textContent = `${song.title} - ${song.artist || 'Unknown'}`;
             upperLeftBadge.classList.remove("hidden");
 
-            // Start the repeating 30s coming song notification loop
             startComingSongLoop();
 
             const title = escapeHtml(song.title);
@@ -662,7 +657,7 @@
         function renderQueue() {
             queueCountEl.textContent = `${songQueue.length} queued`;
             if (songQueue.length === 0) {
-                queueListEl.innerHTML = `<p class="text-slate-500 text-center py-6 text-xs">Queue is empty.</p>";
+                queueListEl.innerHTML = `<p class="text-slate-500 text-center py-6 text-xs">Queue is empty.</p>`;
                 return;
             }
             queueListEl.innerHTML = songQueue.map((song, qIndex) => `
