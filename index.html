@@ -122,9 +122,9 @@
                     </div>
                 </div>
 
-                <!-- Next Song 60-Second Announcement Banner (Normal Mode) -->
+                <!-- Next Song 30-Second Announcement Banner (Normal Mode) -->
                 <div id="next-song-banner" class="hidden my-2 bg-gradient-to-r from-pink-900/90 via-purple-900/90 to-slate-900 border border-pink-500/60 rounded-lg py-2 px-3 text-center shadow-lg animate-pulse">
-                    <span class="text-[10px] uppercase font-bold text-pink-300 tracking-widest block">🌟 UPCOMING NEXT (60s Preview) 🌟</span>
+                    <span class="text-[10px] uppercase font-bold text-pink-300 tracking-widest block">🌟 UPCOMING NEXT (30s Preview) 🌟</span>
                     <span id="next-banner-text" class="text-xs font-bold text-white truncate block">--</span>
                 </div>
 
@@ -515,6 +515,7 @@
                 upperLeftBadge.classList.add("hidden");
                 updateFullscreenNextSongDisplay();
 
+                // 30-Second interval timer for the next song pop-up preview
                 nextSongTimer = setTimeout(() => {
                     nextSongBanner.classList.add("hidden");
                     fullscreenNextBanner.classList.add("hidden");
@@ -522,7 +523,7 @@
                         badgeTitleText.textContent = `${currentActiveSong.title} - ${currentActiveSong.artist || 'Unknown'}`;
                         upperLeftBadge.classList.remove("hidden");
                     }
-                }, 60000);
+                }, 30000);
             } else {
                 nextSongBanner.classList.add("hidden");
                 fullscreenNextBanner.classList.add("hidden");
