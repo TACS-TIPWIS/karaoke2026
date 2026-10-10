@@ -92,12 +92,74 @@
         </div>
     </header>
 
-    <!-- Main Layout -->
-    <main class="flex-grow container mx-auto p-3 md:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
+    <!-- Main Layout (Aligned Stretch to Bottom) -->
+    <main class="flex-grow container mx-auto p-3 md:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
         
-        <!-- 1. MAIN STAGE MONITOR -->
+        <!-- 1. LEFT COLUMN: CODE ENTRY & LIBRARY -->
+        <div class="lg:col-span-3 space-y-3 flex flex-col order-3 lg:order-1">
+            <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-xl space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-pink-400 tracking-wider">CODE ENTRY (1001+)</span>
+                    <div id="code-preview" class="text-[10px] text-slate-400 truncate max-w-[160px]">Ready</div>
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="text" id="song-number-input" placeholder="0000" readonly
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-center text-xl font-black tracking-widest text-pink-300 focus:outline-none">
+                    <button onclick="clearCodeInput()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">
+                        CAN
+                    </button>
+                </div>
+
+                <div id="keypad-grid" class="grid grid-cols-4 gap-1.5">
+                    <button id="kp-0" onclick="pressKey('1')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">1</button>
+                    <button id="kp-1" onclick="pressKey('2')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">2</button>
+                    <button id="kp-2" onclick="pressKey('3')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">3</button>
+                    <button id="kp-3" onclick="backspaceKey()" class="keypad-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded text-xs transition">⌫</button>
+                    
+                    <button id="kp-4" onclick="pressKey('4')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">4</button>
+                    <button id="kp-5" onclick="pressKey('5')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">5</button>
+                    <button id="kp-6" onclick="pressKey('6')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">6</button>
+                    <button id="kp-7" onclick="queueSongByCode()" class="keypad-btn bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 rounded text-[10px] transition">RSV List</button>
+
+                    <button id="kp-8" onclick="pressKey('7')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">7</button>
+                    <button id="kp-9" onclick="pressKey('8')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">8</button>
+                    <button id="kp-10" onclick="pressKey('9')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">9</button>
+                    <button id="kp-11" onclick="toggleFullScreen()" class="keypad-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-xs transition">📺 TV</button>
+
+                    <button id="kp-12" onclick="queueSongByCode()" class="keypad-btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded text-xs transition">RES</button>
+                    <button id="kp-13" onclick="pressKey('0')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">0</button>
+                    <button id="kp-14" onclick="clearCodeInput()" class="keypad-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded text-xs transition">CAN</button>
+                    <button id="kp-15" onclick="queueSongByCode()" class="keypad-btn bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded text-xs transition">OK</button>
+                </div>
+
+                <input type="text" id="search-input" placeholder="Or search by title/artist..." 
+                    class="w-full mt-1 bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 focus:outline-none focus:border-purple-500 text-xs text-slate-200">
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col">
+                <h2 class="text-sm font-semibold mb-2 text-purple-300 flex items-center justify-between">
+                    <span>📚 Library</span>
+                    <span id="song-count" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">0 songs</span>
+                </h2>
+                <div id="song-list" class="space-y-1.5 overflow-y-auto pr-1 flex-grow max-h-[300px]">
+                    <p class="text-slate-500 text-center py-4 text-xs">Loading songs...</p>
+                </div>
+            </div>
+
+            <div id="admin-upload-panel" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg space-y-2 hidden">
+                <h2 class="text-xs font-semibold text-purple-300">📁 Admin Bulk Upload</h2>
+                <form id="upload-form" class="space-y-2">
+                    <input type="file" id="song-files" accept="audio/*,video/*,.mp3,.mp4,.wav,.m4a,.flac" multiple required class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[11px] file:bg-purple-600 file:text-white">
+                    <button type="submit" id="upload-btn" class="w-full bg-purple-600 text-xs font-semibold py-1.5 rounded hover:bg-purple-700 transition text-white">Upload Batch</button>
+                </form>
+                <div id="upload-progress" class="text-[11px] text-purple-300 text-center"></div>
+            </div>
+        </div>
+
+        <!-- 2. CENTER COLUMN: MAIN STAGE MONITOR -->
         <div class="lg:col-span-6 space-y-3 flex flex-col order-1 lg:order-2">
-            <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex flex-col justify-between relative">
+            <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col justify-between relative">
                 
                 <!-- Fullscreen Top Display for Coming Song with Code Number -->
                 <div id="fullscreen-next-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-purple-950/90 border border-pink-500/80 px-6 py-2 rounded-xl text-center shadow-2xl backdrop-blur">
@@ -119,7 +181,7 @@
                         </button>
                     </div>
                     
-                    <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex flex-col items-center justify-center p-4 text-slate-500 text-center min-h-[260px] max-h-[320px] overflow-hidden">
+                    <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex flex-col items-center justify-center p-4 text-slate-500 text-center min-h-[300px] flex-grow overflow-hidden">
                         <div class="space-y-2">
                             <span class="text-3xl">🎵</span>
                             <p class="text-xs">No track playing right now.<br>Queue songs below to start singing!</p>
@@ -169,97 +231,37 @@
             </div>
         </div>
 
-        <!-- 2. SONG QUEUE -->
+        <!-- 3. RIGHT COLUMN: SONG QUEUE -->
         <div class="lg:col-span-3 space-y-3 flex flex-col order-2 lg:order-3">
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex flex-col">
-                <h2 class="text-sm font-semibold mb-2 text-purple-300 flex items-center justify-between">
-                    <span>⭐ Queue / RSV List</span>
-                    <span id="queue-count" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">0 queued</span>
-                </h2>
-                <div id="queue-list" class="space-y-1.5 max-h-[180px] overflow-y-auto pr-1">
-                    <p class="text-slate-500 text-center py-6 text-xs">Queue is empty.</p>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-semibold mb-2 text-purple-300 flex items-center justify-between">
+                        <span>⭐ Queue / RSV List</span>
+                        <span id="queue-count" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">0 queued</span>
+                    </h2>
+                    <div id="queue-list" class="space-y-1.5 overflow-y-auto pr-1 flex-grow max-h-[380px]">
+                        <p class="text-slate-500 text-center py-6 text-xs">Queue is empty.</p>
+                    </div>
                 </div>
 
-                <div class="mt-2 pt-2 border-t border-slate-800 space-y-1.5">
+                <div class="mt-3 pt-2 border-t border-slate-800 space-y-1.5">
                     <div class="grid grid-cols-2 gap-1.5">
-                        <button onclick="togglePlayPause()" class="bg-purple-600 hover:bg-purple-700 text-[11px] font-semibold py-1 rounded transition text-white">
+                        <button onclick="togglePlayPause()" class="bg-purple-600 hover:bg-purple-700 text-[11px] font-semibold py-1.5 rounded transition text-white">
                             ▶ Play / Pause
                         </button>
-                        <button onclick="stopMedia()" class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white text-[11px] font-semibold py-1 rounded transition border border-red-500/30">
+                        <button onclick="stopMedia()" class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white text-[11px] font-semibold py-1.5 rounded transition border border-red-500/30">
                             ⏹ Stop
                         </button>
                     </div>
                     <div class="grid grid-cols-2 gap-1.5">
-                        <button onclick="playPreviousInQueue()" class="bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold py-1 rounded transition text-slate-200">
+                        <button onclick="playPreviousInQueue()" class="bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold py-1.5 rounded transition text-slate-200">
                             ⏮ Previous
                         </button>
-                        <button onclick="playNextInQueue()" class="bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold py-1 rounded transition text-slate-200">
+                        <button onclick="playNextInQueue()" class="bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold py-1.5 rounded transition text-slate-200">
                             ⏭ Next
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- 3. ARCADE KEYPAD & LIBRARY -->
-        <div class="lg:col-span-3 space-y-3 flex flex-col order-3 lg:order-1">
-            <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-xl space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-pink-400 tracking-wider">CODE ENTRY (1001+)</span>
-                    <div id="code-preview" class="text-[10px] text-slate-400 truncate max-w-[160px]">Ready</div>
-                </div>
-
-                <div class="flex gap-2">
-                    <input type="text" id="song-number-input" placeholder="0000" readonly
-                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-center text-xl font-black tracking-widest text-pink-300 focus:outline-none">
-                    <button onclick="clearCodeInput()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">
-                        CAN
-                    </button>
-                </div>
-
-                <div id="keypad-grid" class="grid grid-cols-4 gap-1.5">
-                    <button id="kp-0" onclick="pressKey('1')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">1</button>
-                    <button id="kp-1" onclick="pressKey('2')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">2</button>
-                    <button id="kp-2" onclick="pressKey('3')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">3</button>
-                    <button id="kp-3" onclick="backspaceKey()" class="keypad-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded text-xs transition">⌫</button>
-                    
-                    <button id="kp-4" onclick="pressKey('4')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">4</button>
-                    <button id="kp-5" onclick="pressKey('5')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">5</button>
-                    <button id="kp-6" onclick="pressKey('6')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">6</button>
-                    <button id="kp-7" onclick="queueSongByCode()" class="keypad-btn bg-purple-700 hover:bg-purple-800 text-white font-bold py-2.5 rounded text-[11px] transition">RSV List</button>
-
-                    <button id="kp-8" onclick="pressKey('7')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">7</button>
-                    <button id="kp-9" onclick="pressKey('8')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">8</button>
-                    <button id="kp-10" onclick="pressKey('9')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">9</button>
-                    <button id="kp-11" onclick="toggleFullScreen()" class="keypad-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded text-xs transition">📺 TV</button>
-
-                    <button id="kp-12" onclick="queueSongByCode()" class="keypad-btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded text-xs transition">RES</button>
-                    <button id="kp-13" onclick="pressKey('0')" class="keypad-btn bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">0</button>
-                    <button id="kp-14" onclick="clearCodeInput()" class="keypad-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded text-xs transition">CAN</button>
-                    <button id="kp-15" onclick="queueSongByCode()" class="keypad-btn bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded text-xs transition">OK</button>
-                </div>
-
-                <input type="text" id="search-input" placeholder="Or search by title/artist..." 
-                    class="w-full mt-1 bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 focus:outline-none focus:border-purple-500 text-xs text-slate-200">
-            </div>
-
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex flex-col">
-                <h2 class="text-sm font-semibold mb-2 text-purple-300 flex items-center justify-between">
-                    <span>📚 Library</span>
-                    <span id="song-count" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">0 songs</span>
-                </h2>
-                <div id="song-list" class="space-y-1.5 max-h-[180px] overflow-y-auto pr-1">
-                    <p class="text-slate-500 text-center py-4 text-xs">Loading songs...</p>
-                </div>
-            </div>
-
-            <div id="admin-upload-panel" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg space-y-2 hidden">
-                <h2 class="text-xs font-semibold text-purple-300">📁 Admin Bulk Upload</h2>
-                <form id="upload-form" class="space-y-2">
-                    <input type="file" id="song-files" accept="audio/*,video/*,.mp3,.mp4,.wav,.m4a,.flac" multiple required class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[11px] file:bg-purple-600 file:text-white">
-                    <button type="submit" id="upload-btn" class="w-full bg-purple-600 text-xs font-semibold py-1.5 rounded hover:bg-purple-700 transition text-white">Upload Batch</button>
-                </form>
-                <div id="upload-progress" class="text-[11px] text-purple-300 text-center"></div>
             </div>
         </div>
 
@@ -597,7 +599,7 @@
 
             if (isVideo) {
                 playerContainer.innerHTML = `
-                    <video id="media-player" controls autoplay crossorigin="anonymous" class="w-full h-full max-h-[300px] rounded bg-black object-contain" onerror="handleMediaError()" onended="playNextInQueue()">
+                    <video id="media-player" controls autoplay crossorigin="anonymous" class="w-full h-full max-h-[360px] rounded bg-black object-contain" onerror="handleMediaError()" onended="playNextInQueue()">
                         <source src="${url}">
                     </video>
                 `;
