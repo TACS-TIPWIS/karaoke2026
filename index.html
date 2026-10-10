@@ -19,7 +19,7 @@
         input[type=range] {
             accent-color: #ec4899;
         }
-        /* True TV Fullscreen Expansion - Hide Header & Controls, Make Video Fill 100% Screen */
+        /* True TV Fullscreen Expansion */
         #monitor-card:fullscreen {
             width: 100vw !important;
             height: 100vh !important;
@@ -69,203 +69,186 @@
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between">
 
     <!-- Header -->
-    <header class="bg-slate-900 border-b border-slate-800 p-4 shadow-md flex justify-between items-center">
-        <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
-            🎤 Karaoke Songs Hub
+    <header class="bg-slate-900 border-b border-slate-800 p-3 shadow-md flex justify-between items-center">
+        <h1 class="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+            🎤 GegeKaraOke
         </h1>
-        <div class="flex items-center gap-3">
-            <div id="connection-status" class="text-sm px-3 py-1 rounded-full bg-yellow-600 text-yellow-100">
+        <div class="flex items-center gap-2">
+            <div id="connection-status" class="text-xs px-2.5 py-0.5 rounded-full bg-yellow-600 text-yellow-100">
                 Connecting...
             </div>
             <!-- Admin Mode Toggle Button -->
-            <button onclick="toggleAdminMode()" id="admin-toggle-btn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition">
-                🔒 Admin Login
+            <button onclick="toggleAdminMode()" id="admin-toggle-btn" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 transition">
+                🔒 Admin
             </button>
         </div>
     </header>
 
-    <!-- Main Layout (12-Column Grid with Optimized Mobile Ordering) -->
-    <main class="flex-grow container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Main Layout: Mobile optimized stack (Monitor -> Controls -> Queue -> Keypad -> Library) -->
+    <main class="flex-grow container mx-auto p-3 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4">
         
-        <!-- CENTER COLUMN: Main Stage Monitor & Audio Adjusters (Mobile: Order 1 - Top) -->
-        <div class="lg:col-span-6 space-y-6 flex flex-col order-1 lg:order-2">
-            <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col justify-between">
+        <!-- 1. MAIN STAGE MONITOR (Top on Mobile) -->
+        <div class="lg:col-span-6 space-y-4 flex flex-col order-1 lg:order-2">
+            <div id="monitor-card" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col justify-between">
                 <div>
-                    <div class="flex justify-between items-center mb-3">
-                        <h2 class="text-lg font-semibold text-pink-300 flex items-center gap-2">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-sm font-semibold text-pink-300 flex items-center gap-2">
                             <span>📺 Main Stage Monitor</span>
                         </h2>
-                        <button onclick="toggleFullScreen()" id="fullscreen-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded transition border border-slate-700">
+                        <button onclick="toggleFullScreen()" id="fullscreen-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] px-2 py-0.5 rounded transition border border-slate-700">
                             ⛶ Fullscreen
                         </button>
                     </div>
                     
-                    <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex flex-col items-center justify-center p-6 text-slate-500 text-center min-h-[350px]">
+                    <div id="player-container" class="bg-slate-950 border border-slate-800 rounded-lg flex flex-col items-center justify-center p-4 text-slate-500 text-center min-h-[220px]">
                         <div class="space-y-2">
-                            <span class="text-4xl">🎵</span>
-                            <p class="text-sm">No track playing right now.<br>Add songs to queue to start singing!</p>
+                            <span class="text-3xl">🎵</span>
+                            <p class="text-xs">No track playing right now.<br>Queue songs below to start singing!</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Scrolling Marquee Ticker at Bottom of Stage -->
-                <div class="mt-3 bg-gradient-to-r from-purple-950 via-slate-900 to-pink-950 border border-purple-800/40 rounded-lg py-2 px-3 shadow-inner marquee-container">
-                    <div class="marquee-text text-xs font-bold bg-gradient-to-r from-purple-300 via-pink-400 to-amber-300 bg-clip-text text-transparent tracking-wide">
-                        🎤 Welcome to GegeKaraOke2026 🎵 Enjoy Singing Your Favorite Songs! 🌟 Use Your TV Remote Numbers & Arrows to Browse and Queue 🎶 Have a Wonderful Time! ✨
+                <!-- Scrolling Marquee Ticker -->
+                <div class="mt-2 bg-gradient-to-r from-purple-950 via-slate-900 to-pink-950 border border-purple-800/40 rounded-lg py-1.5 px-3 shadow-inner marquee-container">
+                    <div class="marquee-text text-[11px] font-bold bg-gradient-to-r from-purple-300 via-pink-400 to-amber-300 bg-clip-text text-transparent tracking-wide">
+                        🎤 Welcome to GegeKaraOke2026 🎵 Enjoy Singing Your Favorite Songs! 🌟 Use Keypad Below or TV Remote to Reserve Songs 🎶 Have Fun! ✨
                     </div>
                 </div>
 
-                <!-- AUDIO CONTROLS PANEL (Mobile: Placed right under monitor on mobile/desktop) -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+                <!-- AUDIO CONTROLS PANEL -->
+                <div class="grid grid-cols-3 gap-2 mt-3">
                     <!-- Key / Pitch Control -->
-                    <div class="bg-slate-950 border border-slate-800 p-3 rounded-lg flex flex-col justify-between">
-                        <div class="flex justify-between items-center text-xs mb-1">
-                            <span class="text-slate-400 uppercase tracking-wider font-semibold">Key / Pitch</span>
-                            <span id="pitch-val" class="text-pink-400 font-bold">0 semitones</span>
+                    <div class="bg-slate-950 border border-slate-800 p-2 rounded-lg flex flex-col justify-between">
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-400 font-semibold">KEY</span>
+                            <span id="pitch-val" class="text-pink-400 font-bold">0</span>
                         </div>
                         <input type="range" id="pitch-slider" min="-6" max="6" step="1" value="0" oninput="updatePitch(this.value)" class="w-full cursor-pointer">
-                        <div class="flex justify-between text-[9px] text-slate-500 mt-1">
-                            <span>-6 (Flat)</span>
-                            <span>Original</span>
-                            <span>+6 (Sharp)</span>
-                        </div>
                     </div>
 
                     <!-- Tempo Control -->
-                    <div class="bg-slate-950 border border-slate-800 p-3 rounded-lg flex flex-col justify-between">
-                        <div class="flex justify-between items-center text-xs mb-1">
-                            <span class="text-slate-400 uppercase tracking-wider font-semibold">Tempo</span>
+                    <div class="bg-slate-950 border border-slate-800 p-2 rounded-lg flex flex-col justify-between">
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-400 font-semibold">TEMPO</span>
                             <span id="tempo-val" class="text-pink-400 font-bold">100%</span>
                         </div>
                         <input type="range" id="tempo-slider" min="50" max="150" step="5" value="100" oninput="updateTempo(this.value)" class="w-full cursor-pointer">
-                        <div class="flex justify-between text-[9px] text-slate-500 mt-1">
-                            <span>50%</span>
-                            <span>Normal</span>
-                            <span>150%</span>
-                        </div>
                     </div>
 
                     <!-- Music Volume Control -->
-                    <div class="bg-slate-950 border border-slate-800 p-3 rounded-lg flex flex-col justify-between">
-                        <div class="flex justify-between items-center text-xs mb-1">
-                            <span class="text-slate-400 uppercase tracking-wider font-semibold">Music Volume</span>
+                    <div class="bg-slate-950 border border-slate-800 p-2 rounded-lg flex flex-col justify-between">
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-400 font-semibold">VOL</span>
                             <span id="volume-val" class="text-pink-400 font-bold">100%</span>
                         </div>
                         <input type="range" id="volume-slider" min="0" max="100" step="1" value="100" oninput="updateVolume(this.value)" class="w-full cursor-pointer">
-                        <div class="flex justify-between text-[9px] text-slate-500 mt-1">
-                            <span>0%</span>
-                            <span>50%</span>
-                            <span>100%</span>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: Song Queue (Mobile: Order 2) -->
-        <div class="lg:col-span-3 space-y-6 flex flex-col order-2 lg:order-3">
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col">
-                <h2 class="text-lg font-semibold mb-3 text-purple-300 flex items-center justify-between">
-                    <span>⭐ Queue</span>
-                    <span id="queue-count" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">0 queued</span>
+        <!-- 2. SONG QUEUE (Mobile: Order 2) -->
+        <div class="lg:col-span-3 space-y-4 flex flex-col order-2 lg:order-3">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col">
+                <h2 class="text-sm font-semibold mb-2 text-purple-300 flex items-center justify-between">
+                    <span>⭐ Queue / RSV List</span>
+                    <span id="queue-count" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">0 queued</span>
                 </h2>
-                <div id="queue-list" class="space-y-2 max-h-[350px] overflow-y-auto pr-1 flex-grow">
-                    <p class="text-slate-500 text-center py-12 text-sm">Queue is empty.<br>Add songs to sing next!</p>
+                <div id="queue-list" class="space-y-1.5 max-h-[160px] overflow-y-auto pr-1 flex-grow">
+                    <p class="text-slate-500 text-center py-6 text-xs">Queue is empty.</p>
                 </div>
 
                 <!-- Playback Control Buttons -->
-                <div class="mt-3 pt-3 border-t border-slate-800 space-y-2">
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="togglePlayPause()" class="bg-purple-600 hover:bg-purple-700 text-xs font-semibold py-1.5 rounded transition text-white">
-                            ▶ / ❚❚ Play
+                <div class="mt-2 pt-2 border-t border-slate-800 space-y-1.5">
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button onclick="togglePlayPause()" class="bg-purple-600 hover:bg-purple-700 text-[11px] font-semibold py-1 rounded transition text-white">
+                            ▶ Play / Pause
                         </button>
-                        <button onclick="stopMedia()" class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white text-xs font-semibold py-1.5 rounded transition border border-red-500/30">
+                        <button onclick="stopMedia()" class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white text-[11px] font-semibold py-1 rounded transition border border-red-500/30">
                             ⏹ Stop
                         </button>
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="playPreviousInQueue()" class="bg-slate-800 hover:bg-slate-700 text-xs font-semibold py-1.5 rounded transition text-slate-200">
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button onclick="playPreviousInQueue()" class="bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold py-1 rounded transition text-slate-200">
                             ⏮ Previous
                         </button>
-                        <button onclick="playNextInQueue()" class="bg-slate-800 hover:bg-slate-700 text-xs font-semibold py-1.5 rounded transition text-slate-200">
+                        <button onclick="playNextInQueue()" class="bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold py-1 rounded transition text-slate-200">
                             ⏭ Next
                         </button>
                     </div>
                 </div>
-
-                <button onclick="clearQueue()" class="mt-2 w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 py-1.5 rounded transition">
-                    Clear Queue
-                </button>
             </div>
         </div>
 
-        <!-- LEFT COLUMN: Keypad & Library (Mobile: Order 3 for Keypad at lower portion, Order 4 for Library) -->
+        <!-- 3. ARCADE NUMERIC KEYPAD & LIBRARY (Mobile: Order 3 - Pinned at bottom portion) -->
         <div class="lg:col-span-3 space-y-4 flex flex-col order-3 lg:order-1">
-            <!-- Android TV Remote Code Entry & Keypad Box (Now placed at lower portion on mobile) -->
-            <div class="space-y-2 bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-lg">
-                <label class="block text-xs font-semibold text-pink-400 uppercase tracking-wider">Karaoke Code Entry (1001+)</label>
-                
+            
+            <!-- Arcade Keypad Box matching physical machine style -->
+            <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-xl space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-pink-400 tracking-wider">CODE ENTRY (1001+)</span>
+                    <div id="code-preview" class="text-[10px] text-slate-400 truncate max-w-[160px]">Ready</div>
+                </div>
+
+                <!-- Digital Code Readout Display -->
                 <div class="flex gap-2">
                     <input type="text" id="song-number-input" placeholder="0000" readonly
-                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-center text-xl font-black tracking-widest text-pink-300 focus:outline-none focus:border-pink-500">
-                    <button onclick="clearCodeInput()" class="bg-red-600/85 hover:bg-red-600 text-white font-bold px-3 py-2 rounded-lg text-xs transition">
-                        CLR
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-center text-xl font-black tracking-widest text-pink-300 focus:outline-none">
+                    <button onclick="clearCodeInput()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">
+                        CAN
                     </button>
                 </div>
 
-                <!-- On-Screen Numeric Keypad -->
-                <div class="grid grid-cols-3 gap-1.5 pt-1">
-                    <button onclick="pressKey('1')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">1</button>
-                    <button onclick="pressKey('2')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">2</button>
-                    <button onclick="pressKey('3')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">3</button>
-                    <button onclick="pressKey('4')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">4</button>
-                    <button onclick="pressKey('5')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">5</button>
-                    <button onclick="pressKey('6')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">6</button>
-                    <button onclick="pressKey('7')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">7</button>
-                    <button onclick="pressKey('8')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">8</button>
-                    <button onclick="pressKey('9')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2.5 rounded text-sm transition">9</button>
-                    <button onclick="backspaceKey()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded text-xs transition">⌫</button>
-                    <button onclick="pressKey('0')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-2 rounded text-sm transition">0</button>
-                    <button onclick="queueSongByCode()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 rounded text-xs transition">OK</button>
-                </div>
+                <!-- Arcade Numeric Grid (1-9, 0, RES) -->
+                <div class="grid grid-cols-4 gap-1.5">
+                    <button onclick="pressKey('1')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">1</button>
+                    <button onclick="pressKey('2')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">2</button>
+                    <button onclick="pressKey('3')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">3</button>
+                    <button onclick="backspaceKey()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded text-sm transition">⌫</button>
+                    
+                    <button onclick="pressKey('4')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">4</button>
+                    <button onclick="pressKey('5')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">5</button>
+                    <button onclick="pressKey('6')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">6</button>
+                    <button onclick="queueSongByCode()" class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded text-xs transition">RSV List</button>
 
-                <!-- Live Song Preview Badge -->
-                <div id="code-preview" class="text-[11px] text-slate-400 bg-slate-950 p-2 rounded border border-slate-800 min-h-[36px] flex items-center mt-1">
-                    Use remote Arrows to browse or numbers to select...
+                    <button onclick="pressKey('7')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">7</button>
+                    <button onclick="pressKey('8')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">8</button>
+                    <button onclick="pressKey('9')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">9</button>
+                    <button onclick="toggleFullScreen()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded text-xs transition">📺 TV</button>
+
+                    <button onclick="queueSongByCode()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded text-xs transition">RES</button>
+                    <button onclick="pressKey('0')" class="bg-slate-800 hover:bg-purple-600 text-white font-bold py-3 rounded text-base transition">0</button>
+                    <button onclick="clearCodeInput()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded text-xs transition">CAN</button>
+                    <button onclick="queueSongByCode()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded text-xs transition">OK</button>
                 </div>
 
                 <!-- Search Library Filter -->
                 <input type="text" id="search-input" placeholder="Or search by title/artist..." 
-                    class="w-full mt-2 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:border-purple-500 text-xs text-slate-200">
+                    class="w-full mt-1 bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 focus:outline-none focus:border-purple-500 text-xs text-slate-200">
             </div>
 
             <!-- Song Library -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex-grow flex flex-col order-4">
-                <h2 class="text-lg font-semibold mb-3 text-purple-300 flex items-center justify-between">
-                    <span>📚 Library (Remote Arrows)</span>
-                    <span id="song-count" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">0 songs</span>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg flex-grow flex flex-col order-4">
+                <h2 class="text-sm font-semibold mb-2 text-purple-300 flex items-center justify-between">
+                    <span>📚 Library</span>
+                    <span id="song-count" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">0 songs</span>
                 </h2>
-                <div id="song-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                    <p class="text-slate-500 text-center py-6 text-sm">Loading songs...</p>
+                <div id="song-list" class="space-y-1.5 max-h-[200px] overflow-y-auto pr-1">
+                    <p class="text-slate-500 text-center py-4 text-xs">Loading songs...</p>
                 </div>
             </div>
 
-            <!-- Bulk Multi-File Upload Panel (HIDDEN BY DEFAULT UNLESS ADMIN) -->
-            <div id="admin-upload-panel" class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3 hidden">
-                <h2 class="text-md font-semibold text-purple-300">📁 Admin Bulk Upload</h2>
-                <p class="text-[11px] text-slate-400 leading-tight">Select multiple audio/video files. Titles and artists will be extracted automatically.</p>
-                <form id="upload-form" class="space-y-3">
-                    <div>
-                        <input type="file" id="song-files" accept="audio/*,video/*,.mp3,.mp4,.wav,.m4a,.flac,.mid,.midi" multiple required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer">
-                    </div>
-                    <button type="submit" id="upload-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-semibold py-2 rounded hover:opacity-90 transition">
-                        Upload & Sync Batch
-                    </button>
+            <!-- Admin Upload Panel (Hidden unless unlocked) -->
+            <div id="admin-upload-panel" class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-lg space-y-2 hidden">
+                <h2 class="text-xs font-semibold text-purple-300">📁 Admin Bulk Upload</h2>
+                <form id="upload-form" class="space-y-2">
+                    <input type="file" id="song-files" accept="audio/*,video/*,.mp3,.mp4,.wav,.m4a,.flac" multiple required class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[11px] file:bg-purple-600 file:text-white">
+                    <button type="submit" id="upload-btn" class="w-full bg-purple-600 text-xs font-semibold py-1.5 rounded hover:bg-purple-700 transition text-white">Upload Batch</button>
                 </form>
-                <div id="upload-progress" class="text-xs text-purple-300 text-center font-medium"></div>
+                <div id="upload-progress" class="text-[11px] text-purple-300 text-center"></div>
             </div>
         </div>
 
@@ -313,9 +296,7 @@
 
         let synthVoices = [];
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => {
-                synthVoices = window.speechSynthesis.getVoices();
-            };
+            window.speechSynthesis.onvoiceschanged = () => { synthVoices = window.speechSynthesis.getVoices(); };
             synthVoices = window.speechSynthesis.getVoices();
         }
 
@@ -332,7 +313,7 @@
                     }
                     window.speechSynthesis.speak(activeUtterance);
                 } catch (e) {
-                    console.error("Speech synthesis error on TV:", e);
+                    console.error("Speech synthesis error:", e);
                 }
             }
         }
@@ -343,8 +324,7 @@
                 if (pwd === ADMIN_PASSCODE) {
                     isAdmin = true;
                     adminUploadPanel.classList.remove("hidden");
-                    adminToggleBtn.textContent = "🔓 Admin Mode ON";
-                    adminToggleBtn.className = "text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg border border-green-500 transition";
+                    adminToggleBtn.textContent = "🔓 Admin ON";
                     renderSongs(currentDisplayedSongs);
                     alert("Admin mode enabled successfully!");
                 } else if (pwd !== null) {
@@ -353,8 +333,7 @@
             } else {
                 isAdmin = false;
                 adminUploadPanel.classList.add("hidden");
-                adminToggleBtn.textContent = "🔒 Admin Login";
-                adminToggleBtn.className = "text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition";
+                adminToggleBtn.textContent = "🔒 Admin";
                 renderSongs(currentDisplayedSongs);
                 alert("Admin mode locked.");
             }
@@ -365,16 +344,16 @@
                 const { data, error } = await supabaseClient.from("songs").select("*").order("created_at", { ascending: true });
                 if (error) throw error;
                 
-                statusEl.textContent = "Cloud Connected 🟢";
-                statusEl.className = "text-sm px-3 py-1 rounded-full bg-green-600 text-green-100";
+                statusEl.textContent = "Connected 🟢";
+                statusEl.className = "text-xs px-2.5 py-0.5 rounded-full bg-green-600 text-green-100";
                 
                 allSongs = data || [];
                 renderSongs(allSongs);
                 setupRealtime();
             } catch (err) {
                 console.error("Connection error:", err);
-                statusEl.textContent = "Connection Failed 🔴";
-                statusEl.className = "text-sm px-3 py-1 rounded-full bg-red-600 text-red-100";
+                statusEl.textContent = "Failed 🔴";
+                statusEl.className = "text-xs px-2.5 py-0.5 rounded-full bg-red-600 text-red-100";
             }
         }
 
@@ -383,7 +362,7 @@
             songCountEl.textContent = `${songs.length} songs`;
             
             if (songs.length === 0) {
-                songListEl.innerHTML = `<p class="text-slate-500 text-center py-6 text-sm">No songs found.</p>`;
+                songListEl.innerHTML = `<p class="text-slate-500 text-center py-4 text-xs">No songs found.</p>`;
                 return;
             }
 
@@ -395,18 +374,18 @@
                 const assignedCode = BASE_SONG_CODE + index;
                 const isSelected = (index === selectedLibraryIndex);
                 return `
-                    <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border p-2 rounded-lg transition text-xs ${isSelected ? 'tv-focused border-purple-400' : 'border-slate-800 hover:border-purple-600'}">
-                        <div class="overflow-hidden pr-2 flex items-center gap-2">
-                            <span class="text-[10px] font-bold text-pink-400 bg-pink-950/50 px-1.5 py-0.5 rounded shrink-0">#${assignedCode}</span>
+                    <div id="song-item-${index}" class="flex justify-between items-center bg-slate-950 border p-1.5 rounded transition text-xs ${isSelected ? 'tv-focused border-purple-400' : 'border-slate-800'}">
+                        <div class="overflow-hidden pr-2 flex items-center gap-1.5">
+                            <span class="text-[10px] font-bold text-pink-400 bg-pink-950/50 px-1 py-0.5 rounded shrink-0">#${assignedCode}</span>
                             <div class="truncate">
-                                <h3 class="font-medium text-slate-200 truncate">${escapeHtml(song.title)}</h3>
-                                <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist || 'Unknown Artist')}</p>
+                                <h3 class="font-medium text-slate-200 truncate text-[11px]">${escapeHtml(song.title)}</h3>
+                                <p class="text-[9px] text-slate-400 truncate">${escapeHtml(song.artist || 'Unknown')}</p>
                             </div>
                         </div>
                         <div class="flex gap-1 shrink-0">
-                            <button onclick="addToQueue(${index})" title="Add to Queue" class="bg-purple-600 hover:bg-purple-700 px-2 py-0.5 rounded font-medium text-white">Queue</button>
-                            <button onclick="playSongImmediate(${index})" title="Play Now" class="bg-pink-600 hover:bg-pink-700 px-2 py-0.5 rounded font-medium text-white">Play</button>
-                            ${isAdmin ? `<button onclick="deleteSong('${song.id}')" title="Delete" class="bg-red-600 text-white hover:bg-red-700 px-1.5 py-0.5 rounded transition">×</button>` : ''}
+                            <button onclick="addToQueue(${index})" class="bg-purple-600 hover:bg-purple-700 px-1.5 py-0.5 rounded font-medium text-[10px] text-white">RSV</button>
+                            <button onclick="playSongImmediate(${index})" class="bg-pink-600 hover:bg-pink-700 px-1.5 py-0.5 rounded font-medium text-[10px] text-white">Play</button>
+                            ${isAdmin ? `<button onclick="deleteSong('${song.id}')" class="bg-red-600 text-white px-1 py-0.5 rounded text-[10px]">×</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -418,7 +397,6 @@
             if (current.length >= 5) current = "";
             current += digit;
             songNumberInput.value = current;
-            
             speakText(digit);
             previewSongByCode(current);
         };
@@ -434,19 +412,19 @@
         window.clearCodeInput = function() {
             songNumberInput.value = "";
             speakText("cleared");
-            codePreviewEl.innerHTML = `<span class="text-slate-500">Keypad cleared. Use arrows or numbers.</span>`;
+            codePreviewEl.innerHTML = `<span class="text-slate-500">Cleared</span>`;
         };
 
         window.previewSongByCode = function(val) {
             const code = parseInt(val);
             if (isNaN(code) || code < BASE_SONG_CODE || code > BASE_SONG_CODE + allSongs.length - 1) {
-                codePreviewEl.innerHTML = `<span class="text-slate-500">Code #${val || '....'} (Range: ${BASE_SONG_CODE} - ${BASE_SONG_CODE + allSongs.length - 1})</span>`;
+                codePreviewEl.innerHTML = `<span class="text-slate-500">Code #${val || '....'}</span>`;
                 return;
             }
             const targetIndex = code - BASE_SONG_CODE;
             const song = allSongs[targetIndex];
             if (song) {
-                codePreviewEl.innerHTML = `<span class="text-pink-300 font-semibold truncate">🎵 #${code}: ${escapeHtml(song.title)} - ${escapeHtml(song.artist || 'Unknown')}</span>`;
+                codePreviewEl.innerHTML = `<span class="text-pink-300 font-semibold truncate">🎵 ${escapeHtml(song.title)}</span>`;
                 selectedLibraryIndex = targetIndex;
                 renderSongs(allSongs);
                 scrollSelectedIntoView();
@@ -462,10 +440,9 @@
                     renderSongs(allSongs);
                     scrollSelectedIntoView();
                     addToQueue(targetIndex);
-                    
-                    speakText(`Queued code ${code}`);
+                    speakText(`Reserved code ${code}`);
                     songNumberInput.value = "";
-                    codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Successfully queued code #${code}! 🎉</span>`;
+                    codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Reserved #${code}! 🎉</span>`;
                     return;
                 }
             }
@@ -474,8 +451,8 @@
                 const song = currentDisplayedSongs[selectedLibraryIndex];
                 const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
                 addToQueue(allSongs.indexOf(song));
-                speakText(`Queued ${song.title}`);
-                codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Successfully queued #${assignedCode}: ${escapeHtml(song.title)}! 🎉</span>`;
+                speakText(`Reserved ${song.title}`);
+                codePreviewEl.innerHTML = `<span class="text-green-400 font-medium">Reserved #${assignedCode}! 🎉</span>`;
             }
         };
 
@@ -484,7 +461,6 @@
             if (!song) return;
             songQueue.push(song);
             renderQueue();
-            
             if (!currentActiveSong && !document.querySelector('audio, video')) {
                 playNextInQueue();
             }
@@ -500,9 +476,8 @@
 
         function playMedia(song) {
             const url = song.file_path || song.file_url || song.url || song.media_url;
-
             if (!url || url.endsWith('.mid') || url.endsWith('.midi')) {
-                alert(`Cannot play "${song.title}". Browsers do not support MIDI (.mid) files.`);
+                alert(`Cannot play "${song.title}". MIDI files are not supported in browsers.`);
                 playNextInQueue();
                 return;
             }
@@ -518,31 +493,26 @@
 
             if (isVideo) {
                 playerContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center mb-2">
-                        <span class="text-xs text-pink-400 font-semibold truncate">NOW SINGING: ${title} - ${artist}</span>
+                    <div class="w-full flex justify-between items-center mb-1">
+                        <span class="text-[11px] text-pink-400 font-semibold truncate">NOW: ${title} - ${artist}</span>
                     </div>
-                    <video id="media-player" controls autoplay crossorigin="anonymous" class="w-full max-h-[260px] rounded-lg bg-black object-contain" onerror="handleMediaError()" onended="playNextInQueue()">
+                    <video id="media-player" controls autoplay crossorigin="anonymous" class="w-full max-h-[220px] rounded bg-black object-contain" onerror="handleMediaError()" onended="playNextInQueue()">
                         <source src="${url}">
-                        Your browser does not support the video tag.
                     </video>
                 `;
             } else {
                 playerContainer.innerHTML = `
-                    <div class="w-full flex justify-between items-center mb-2">
-                        <span class="text-xs text-purple-400 font-semibold truncate">NOW SINGING: ${title} - ${artist}</span>
+                    <div class="w-full flex justify-between items-center mb-1">
+                        <span class="text-[11px] text-purple-400 font-semibold truncate">NOW: ${title} - ${artist}</span>
                     </div>
-                    <div class="flex flex-col items-center justify-center space-y-3 py-4 w-full">
-                        <div class="w-16 h-16 rounded-full bg-purple-900/40 border border-purple-500/50 flex items-center justify-center text-3xl animate-pulse">
-                            🎤
-                        </div>
+                    <div class="flex flex-col items-center justify-center space-y-2 py-2 w-full">
+                        <div class="w-12 h-12 rounded-full bg-purple-900/40 border border-purple-500/50 flex items-center justify-center text-2xl animate-pulse">🎤</div>
                         <audio id="media-player" controls autoplay crossorigin="anonymous" class="w-full" onerror="handleMediaError()" onended="playNextInQueue()">
                             <source src="${url}">
-                            Your browser does not support the audio element.
                         </audio>
                     </div>
                 `;
             }
-
             setupAudioContextPipeline();
         }
 
@@ -550,44 +520,27 @@
             try {
                 audioElement = document.getElementById("media-player");
                 if (!audioElement) return;
-
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === "suspended") {
-                    audioCtx.resume();
-                }
-
-                if (audioSourceNode) {
-                    try { audioSourceNode.disconnect(); } catch(e){}
-                }
-
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === "suspended") audioCtx.resume();
+                if (audioSourceNode) { try { audioSourceNode.disconnect(); } catch(e){} }
                 audioSourceNode = audioCtx.createMediaElementSource(audioElement);
                 gainNode = audioCtx.createGain();
-
                 applyAudioSettings();
-
                 audioSourceNode.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
-            } catch (err) {
-                console.error("Web Audio API setup error:", err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         function applyAudioSettings() {
             if (!audioElement) return;
             const pitchFactor = Math.pow(2, currentPitchShift / 12);
-            const totalRate = currentTempo * pitchFactor;
-
-            audioElement.playbackRate = totalRate;
-            if (gainNode && audioCtx) {
-                gainNode.gain.value = currentVol;
-            }
+            audioElement.playbackRate = currentTempo * pitchFactor;
+            if (gainNode) gainNode.gain.value = currentVol;
         }
 
         window.updatePitch = function(val) {
             currentPitchShift = parseInt(val);
-            document.getElementById("pitch-val").textContent = `${currentPitchShift > 0 ? '+' : ''}${currentPitchShift} semitones`;
+            document.getElementById("pitch-val").textContent = `${currentPitchShift > 0 ? '+' : ''}${currentPitchShift}`;
             applyAudioSettings();
         };
 
@@ -605,7 +558,7 @@
         };
 
         window.handleMediaError = function() {
-            alert("Error loading media file. Please check if the file URL is accessible.");
+            alert("Error loading media file.");
             playNextInQueue();
         };
 
@@ -616,20 +569,13 @@
                 playMedia(nextSong);
             } else {
                 currentActiveSong = null;
-                playerContainer.innerHTML = `
-                    <div class="space-y-2">
-                        <span class="text-4xl">🎵</span>
-                        <p class="text-sm">Queue finished!<br>Add more songs to the queue to keep singing.</p>
-                    </div>
-                `;
+                playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Queue finished!</p></div>`;
             }
         };
 
         window.playPreviousInQueue = function() {
             if (historyQueue.length > 0) {
-                if (currentActiveSong) {
-                    songQueue.unshift(currentActiveSong);
-                }
+                if (currentActiveSong) songQueue.unshift(currentActiveSong);
                 const prevSong = historyQueue.pop();
                 renderQueue();
                 playMedia(prevSong);
@@ -638,51 +584,32 @@
 
         window.togglePlayPause = function() {
             const player = document.getElementById("media-player");
-            if (player) {
-                if (player.paused) { player.play(); } else { player.pause(); }
-            }
+            if (player) { if (player.paused) player.play(); else player.pause(); }
         };
 
         window.stopMedia = function() {
             const player = document.getElementById("media-player");
-            if (player) {
-                player.pause();
-                player.currentTime = 0;
-            }
+            if (player) { player.pause(); player.currentTime = 0; }
             currentActiveSong = null;
-            playerContainer.innerHTML = `
-                <div class="space-y-2">
-                    <span class="text-4xl">🎵</span>
-                    <p class="text-sm">Playback stopped.<br>Add songs to queue to sing!</p>
-                </div>
-            `;
+            playerContainer.innerHTML = `<div class="space-y-2"><span class="text-3xl">🎵</span><p class="text-xs">Stopped.</p></div>`;
         };
 
-        window.removeFromQueue = function(queueIndex) {
-            songQueue.splice(queueIndex, 1);
-            renderQueue();
-        };
-
-        window.clearQueue = function() {
-            songQueue = [];
-            renderQueue();
-        };
+        window.removeFromQueue = function(qIndex) { songQueue.splice(qIndex, 1); renderQueue(); };
+        window.clearQueue = function() { songQueue = []; renderQueue(); };
 
         function renderQueue() {
             queueCountEl.textContent = `${songQueue.length} queued`;
             if (songQueue.length === 0) {
-                queueListEl.innerHTML = `<p class="text-slate-500 text-center py-12 text-sm">Queue is empty.<br>Add songs to sing next!</p>`;
+                queueListEl.innerHTML = `<p class="text-slate-500 text-center py-6 text-xs">Queue is empty.</p>`;
                 return;
             }
-
             queueListEl.innerHTML = songQueue.map((song, qIndex) => `
-                <div class="flex justify-between items-center bg-slate-950 border border-slate-800 p-2 rounded-lg text-xs">
+                <div class="flex justify-between items-center bg-slate-950 border border-slate-800 p-1.5 rounded text-xs">
                     <div class="overflow-hidden pr-2">
                         <span class="text-[10px] text-purple-400 font-bold mr-1">#${qIndex + 1}</span>
-                        <span class="font-medium text-slate-200 truncate">${escapeHtml(song.title)}</span>
-                        <p class="text-[10px] text-slate-400 truncate">${escapeHtml(song.artist || 'Unknown Artist')}</p>
+                        <span class="font-medium text-slate-200 text-[11px] truncate">${escapeHtml(song.title)}</span>
                     </div>
-                    <button onclick="removeFromQueue(${qIndex})" class="text-slate-500 hover:text-red-400 text-xs px-1.5 py-0.5">✕</button>
+                    <button onclick="removeFromQueue(${qIndex})" class="text-slate-500 hover:text-red-400 text-xs px-1">✕</button>
                 </div>
             `).join('');
         }
@@ -690,93 +617,28 @@
         function toggleFullScreen() {
             const monitorCard = document.getElementById("monitor-card");
             if (!document.fullscreenElement) {
-                if (monitorCard.requestFullscreen) {
-                    monitorCard.requestFullscreen();
-                } else if (monitorCard.webkitRequestFullscreen) {
-                    monitorCard.webkitRequestFullscreen();
-                } else if (monitorCard.msRequestFullscreen) {
-                    monitorCard.msRequestFullscreen();
-                }
-                document.getElementById("fullscreen-btn").textContent = "✕ Exit Fullscreen";
+                if (monitorCard.requestFullscreen) monitorCard.requestFullscreen();
+                else if (monitorCard.webkitRequestFullscreen) monitorCard.webkitRequestFullscreen();
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
-                document.getElementById("fullscreen-btn").textContent = "⛶ Fullscreen";
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
             }
         }
 
-        document.addEventListener("fullscreenchange", () => {
-            if (!document.fullscreenElement) {
-                document.getElementById("fullscreen-btn").textContent = "⛶ Fullscreen";
-            }
-        });
-
-        // Global Android TV Remote / Physical Keyboard Listener
         document.addEventListener("keydown", (e) => {
             if (currentDisplayedSongs.length === 0) return;
-
-            if (e.key >= '0' && e.key <= '9') {
-                if (document.activeElement !== searchInput) {
-                    e.preventDefault();
-                    pressKey(e.key);
-                }
-            } else if (e.key === "Backspace" || e.key === "Delete") {
-                if (document.activeElement !== searchInput) {
-                    e.preventDefault();
-                    backspaceKey();
-                }
-            } else if (e.key === "Enter" || e.key === "Ok" || e.code === "Enter" || e.keyCode === 13) {
-                if (document.activeElement !== searchInput) {
-                    e.preventDefault();
-                    queueSongByCode();
-                }
-                return;
-            }
-
-            if (e.key === "MediaPlayPause" || e.code === "MediaPlayPause") {
+            if (e.key >= '0' && e.key <= '9' && document.activeElement !== searchInput) {
+                e.preventDefault(); pressKey(e.key);
+            } else if ((e.key === "Backspace" || e.key === "Delete") && document.activeElement !== searchInput) {
+                e.preventDefault(); backspaceKey();
+            } else if ((e.key === "Enter" || e.keyCode === 13) && document.activeElement !== searchInput) {
+                e.preventDefault(); queueSongByCode();
+            } else if (e.key === "ArrowDown") {
                 e.preventDefault();
-                togglePlayPause();
-                return;
-            }
-            if (e.key === "MediaStop" || e.code === "MediaStop") {
-                e.preventDefault();
-                stopMedia();
-                return;
-            }
-            if (e.key === "MediaTrackNext" || e.code === "MediaTrackNext") {
-                e.preventDefault();
-                playNextInQueue();
-                return;
-            }
-            if (e.key === "MediaTrackPrevious" || e.code === "MediaTrackPrevious") {
-                e.preventDefault();
-                playPreviousInQueue();
-                return;
-            }
-
-            if (e.key === "ArrowDown") {
-                e.preventDefault();
-                if (selectedLibraryIndex < currentDisplayedSongs.length - 1) {
-                    selectedLibraryIndex++;
-                    renderSongs(currentDisplayedSongs);
-                    scrollSelectedIntoView();
-                    const song = currentDisplayedSongs[selectedLibraryIndex];
-                    const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
-                    codePreviewEl.innerHTML = `<span class="text-pink-300 font-semibold truncate">🎵 Selected #${assignedCode}: ${escapeHtml(song.title)}</span>`;
-                }
+                if (selectedLibraryIndex < currentDisplayedSongs.length - 1) { selectedLibraryIndex++; renderSongs(currentDisplayedSongs); scrollSelectedIntoView(); }
             } else if (e.key === "ArrowUp") {
                 e.preventDefault();
-                if (selectedLibraryIndex > 0) {
-                    selectedLibraryIndex--;
-                    renderSongs(currentDisplayedSongs);
-                    scrollSelectedIntoView();
-                    const song = currentDisplayedSongs[selectedLibraryIndex];
-                    const assignedCode = BASE_SONG_CODE + allSongs.indexOf(song);
-                    codePreviewEl.innerHTML = `<span class="text-pink-300 font-semibold truncate">🎵 Selected #${assignedCode}: ${escapeHtml(song.title)}</span>`;
-                }
+                if (selectedLibraryIndex > 0) { selectedLibraryIndex--; renderSongs(currentDisplayedSongs); scrollSelectedIntoView(); }
             }
         });
 
@@ -787,96 +649,57 @@
 
         function parseFileName(filename) {
             const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
-            let parts = nameWithoutExt.split(/[-_]/);
-            if (parts.length >= 2) {
-                return { artist: parts[0].trim(), title: parts.slice(1).join(' ').trim() };
-            } else {
-                return { artist: "Unknown Artist", title: nameWithoutExt.trim() };
-            }
+            const parts = nameWithoutExt.split(/[-_]/);
+            return parts.length >= 2 ? { artist: parts[0].trim(), title: parts.slice(1).join(' ').trim() } : { artist: "Unknown", title: nameWithoutExt.trim() };
         }
 
         if (uploadForm) {
             uploadForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
                 if (!isAdmin) return alert("Unauthorized!");
-
-                const fileInput = document.getElementById("song-files");
-                const files = fileInput.files;
-                if (!files || files.length === 0) return alert("Please select files first!");
-
+                const files = document.getElementById("song-files").files;
+                if (!files || files.length === 0) return alert("Select files first!");
                 const uploadBtn = document.getElementById("upload-btn");
                 uploadBtn.disabled = true;
-
-                let successCount = 0;
-                let totalFiles = files.length;
-
-                for (let i = 0; i < totalFiles; i++) {
+                let success = 0;
+                for (let i = 0; i < files.length; i++) {
                     const file = files[i];
-                    uploadProgress.textContent = `Uploading (${i + 1}/${totalFiles}): ${file.name}`;
-
+                    uploadProgress.textContent = `Uploading (${i + 1}/${files.length})`;
                     try {
                         const parsed = parseFileName(file.name);
-                        const fileExt = file.name.split('.').pop();
-                        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-                        
-                        const { error: uploadError } = await supabaseClient.storage.from("karaoke_songs").upload(fileName, file);
-                        if (uploadError) throw uploadError;
-
-                        const { data: publicUrlData } = supabaseClient.storage.from("karaoke_songs").getPublicUrl(fileName);
-                        const { error: dbError } = await supabaseClient.from("songs").insert([
-                            { title: parsed.title, artist: parsed.artist, file_path: publicUrlData.publicUrl }
-                        ]);
-                        if (dbError) throw dbError;
-                        successCount++;
-                    } catch (err) {
-                        console.error(`Error uploading ${file.name}:`, err);
-                    }
+                        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${file.name.split('.').pop()}`;
+                        const { error: upErr } = await supabaseClient.storage.from("karaoke_songs").upload(fileName, file);
+                        if (upErr) throw upErr;
+                        const { data: urlData } = supabaseClient.storage.from("karaoke_songs").getPublicUrl(fileName);
+                        const { error: dbErr } = await supabaseClient.from("songs").insert([{ title: parsed.title, artist: parsed.artist, file_path: urlData.publicUrl }]);
+                        if (dbErr) throw dbErr;
+                        success++;
+                    } catch (err) { console.error(err); }
                 }
-
-                uploadProgress.textContent = `Successfully uploaded ${successCount} of ${totalFiles} songs! 🎉`;
+                uploadProgress.textContent = `Uploaded ${success} of ${files.length} songs!`;
                 uploadBtn.disabled = false;
                 uploadForm.reset();
-                setTimeout(() => { uploadProgress.textContent = ""; }, 5000);
             });
         }
 
         window.deleteSong = async function(id) {
-            if (!isAdmin) return alert("Unauthorized!");
-            if (!confirm("Are you sure you want to delete this song?")) return;
-            try {
-                const { error } = await supabaseClient.from("songs").delete().eq("id", id);
-                if (error) throw error;
-            } catch (err) {
-                alert("Error deleting song: " + err.message);
-            }
+            if (!isAdmin || !confirm("Delete this song?")) return;
+            await supabaseClient.from("songs").delete().eq("id", id);
         };
 
         function setupRealtime() {
-            supabaseClient
-                .channel("public:songs")
-                .on("postgres_changes", { event: "*", schema: "public", table: "songs" }, payload => {
-                    if (payload.eventType === "INSERT") {
-                        allSongs.push(payload.new);
-                    } else if (payload.eventType === "DELETE") {
-                        allSongs = allSongs.filter(s => s.id !== payload.old.id);
-                    }
-                    const query = searchInput.value.toLowerCase();
-                    const filtered = allSongs.filter(song => 
-                        song.title.toLowerCase().includes(query) || (song.artist && song.artist.toLowerCase().includes(query))
-                    );
-                    renderSongs(filtered);
-                })
-                .subscribe();
+            supabaseClient.channel("public:songs").on("postgres_changes", { event: "*", schema: "public", table: "songs" }, payload => {
+                if (payload.eventType === "INSERT") allSongs.push(payload.new);
+                else if (payload.eventType === "DELETE") allSongs = allSongs.filter(s => s.id !== payload.old.id);
+                const query = searchInput.value.toLowerCase();
+                renderSongs(allSongs.filter(s => s.title.toLowerCase().includes(query) || (s.artist && s.artist.toLowerCase().includes(query))));
+            }).subscribe();
         }
 
         if (searchInput) {
             searchInput.addEventListener("input", (e) => {
                 const query = e.target.value.toLowerCase();
-                const filtered = allSongs.filter(song => 
-                    song.title.toLowerCase().includes(query) || (song.artist && song.artist.toLowerCase().includes(query))
-                );
-                selectedLibraryIndex = 0;
-                renderSongs(filtered);
+                renderSongs(allSongs.filter(s => s.title.toLowerCase().includes(query) || (s.artist && s.artist.toLowerCase().includes(query))));
             });
         }
 
